@@ -1,48 +1,27 @@
 ﻿using System;
 using System.IO;
+using Catalyst.Core;
+using Catalyst.Globals;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace Catalyst;
 
-public class Camera2D
-{
-    public Vector2 Position = Vector2.Zero;
-    public float Zoom = 1f;
-    public float Rotation = 0f;
-
-    public Matrix GetViewMatrix()
-    {
-        return
-            Matrix.CreateTranslation(new Vector3(-Position, 0f)) *
-            Matrix.CreateRotationZ(Rotation) *
-            Matrix.CreateScale(Zoom, Zoom, 1f);
-    }
-}
-
 public class Game1 : Game
 {
     private readonly GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
+    private RenderTarget2D _renderTarget;
 
+    private Texture2D _charTex;
     private Texture2D _dirtTexAtlas;
     private readonly Rectangle _dirtCommonRect = new(0, 1, 8, 8);
-    private Texture2D _charTex;
+    
     private readonly Camera2D _camera = new();
     private const float CameraSpeed = 2.0f;
 
-    private const int TileSize = 8;
-    private bool[,] _tiles;
-
-    private const int Scale = 3;
-
-    private const int NativeWidth = 320*2;
-    private const int NativeHeight = 180*2;
-
-    private RenderTarget2D _renderTarget;
-    private FastNoiseLite _noise;
-    private int _seed = 0;
+    private World _world = null;
 
     public Game1()
     {
@@ -50,24 +29,17 @@ public class Game1 : Game
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
 
-        // Set *window size* to scaled resolution
-        _graphics.PreferredBackBufferWidth = NativeWidth * Scale;
-        _graphics.PreferredBackBufferHeight = NativeHeight * Scale;
+        _graphics.PreferredBackBufferWidth = Settings.NativeWidth * Settings.ResScale;
+        _graphics.PreferredBackBufferHeight = Settings.NativeHeight * Settings.ResScale;
     }
 
     protected override void Initialize()
     {
         base.Initialize();
         
-        _noise = new FastNoiseLite();
-        _noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
-        _noise.SetFrequency(0.05f);
-        _noise.SetSeed(_seed);
-        
-        _renderTarget = new RenderTarget2D(GraphicsDevice, NativeWidth, NativeHeight);
-        _tiles = new bool[NativeWidth / TileSize, NativeHeight / TileSize];
-
-        GenerateTerrain();
+        _renderTarget = new RenderTarget2D(GraphicsDevice, Settings.NativeWidth, Settings.NativeHeight);
+        _world = new World(Settings.NativeWidth / Settings.TileSize, Settings.NativeHeight / Settings.TileSize);
+        _world.GenerateTerrain();
     }
 
     protected override void LoadContent()
@@ -86,12 +58,9 @@ public class Game1 : Game
 
         if (kState.IsKeyDown(Keys.R))
         {
-            var random = new Random();
-            _seed = random.Next();
-            _noise.SetSeed(_seed);
-            GenerateTerrain();
+            _world.RandomizeSeed();
+            _world.GenerateTerrain();
         }
-        
 
         if (kState.IsKeyDown(Keys.Left))
             _camera.Position.X -= CameraSpeed;
@@ -105,46 +74,42 @@ public class Game1 : Game
         base.Update(gameTime);
     }
     
-    private void GenerateTerrain()
-    {
-        const int tilesWide = NativeWidth / TileSize;
-        const int tilesHigh = NativeHeight / TileSize;
-
-        for (int x = 0; x < tilesWide; x++)
-        {
-            float noiseValue = _noise.GetNoise(x, 0);
-            int surfaceY = (int)(tilesHigh / 2 + noiseValue * 10);
-
-            for (int y = 0; y < tilesHigh; y++)
-                _tiles[x, y] = y > surfaceY;
-        }
-    }
-
     protected override void Draw(GameTime gameTime)
     {
-        /* Draw to Render Target at native resolution */
+        RenderAtNativeRes();
+        RenderAtScaledRes();
+
+        base.Draw(gameTime);
+    }
+
+    /* Draw to Render Target at native resolution */
+    private void RenderAtNativeRes()
+    {
         GraphicsDevice.SetRenderTarget(_renderTarget);
         GraphicsDevice.Clear(Color.CornflowerBlue);
         _spriteBatch.Begin(transformMatrix: _camera.GetViewMatrix());
-        for (int i = 0; i < NativeWidth / TileSize; i++)
+        for (int i = 0; i < _world.GetWidth(); i++)
         {
-            for (int j = 0; j < NativeHeight / TileSize; j++)
+            for (int j = 0; j < _world.GetHeight(); j++)
             {
-                if (_tiles[i, j] == false)
+                if (!_world.GetTileAt(i, j) )
                     continue;
-                var worldPos = new Vector2(i * TileSize, j * TileSize);
+                var worldPos = new Vector2(i, j) * Settings.TileSize;
                 _spriteBatch.Draw(_dirtTexAtlas, worldPos, _dirtCommonRect, Color.White);
             }
         }
         _spriteBatch.End();
+    }
 
-        /* Draw Render Target scaled to window size */
+    /* Draws Render Target scaled to window size */
+    private void RenderAtScaledRes()
+    {
         GraphicsDevice.SetRenderTarget(null);
         GraphicsDevice.Clear(Color.Black);
         _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-        _spriteBatch.Draw(_renderTarget, destinationRectangle: new Rectangle(0, 0, NativeWidth * Scale, NativeHeight * Scale), Color.White);
+        _spriteBatch.Draw(
+            _renderTarget, destinationRectangle: new Rectangle(
+                0, 0, Settings.NativeWidth * Settings.ResScale, Settings.NativeHeight * Settings.ResScale), Color.White);
         _spriteBatch.End();
-
-        base.Draw(gameTime);
     }
 }
