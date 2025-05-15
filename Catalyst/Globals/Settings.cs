@@ -7,9 +7,9 @@ public static class Settings
     public const int NativeWidth = 320*2;
     public const int NativeHeight = 180*2;
     public const int WorldGenNoiseAmplitude = 5;
-    public const float BaseRealPlayerSpeed = 20.0f;
+    public const float BaseRealPlayerSpeed = 60.0f;
     public const float Gravity = 15f;
-    public const float PlayerJumpForce = 10f;
+    public const float PlayerJumpForce = 200f;
     
     // Physics constants
     public const float GroundFriction = 0.8f;    // Retain 80% of velocity on ground

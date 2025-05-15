@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Catalyst.Core;
 using Catalyst.Entities;
+using Catalyst.Entities.Player;
 using Catalyst.Globals;
 using Catalyst.Graphics;
 using Microsoft.Xna.Framework;
@@ -44,7 +45,7 @@ public class Game1 : Game
     protected override void Initialize()
     {
         base.Initialize();
-        
+
         InitializePlayer();
         _world.SetPlayer(_player);
         _renderTarget = new RenderTarget2D(GraphicsDevice, Settings.NativeWidth, Settings.NativeHeight);

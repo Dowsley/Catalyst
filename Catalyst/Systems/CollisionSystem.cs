@@ -3,19 +3,52 @@ using System.Collections.Generic;
 using System.Linq;
 using Catalyst.Core;
 using Catalyst.Core.Extensions;
+using Catalyst.Entities;
 using Catalyst.Globals;
 using Microsoft.Xna.Framework;
 
-namespace Catalyst.Entities.Actions;
+namespace Catalyst.Systems;
 
-public class WalkAction(Entity entityRef, Vector2 moveOffset) : Action(entityRef)
+public class CollisionSystem(World worldRef)
 {
-    protected Vector2 MoveOffset = moveOffset;
-    
-    public override bool CanPerform(World worldRef)
+    private readonly World _worldRef = worldRef;
+
+    public bool IsOnFloor(Entity entity)
     {
-        var colShapeFinalVertical = EntityRef.CollisionShape;
-        colShapeFinalVertical.Position.Y += MoveOffset.Y;
+        var feetPos = worldRef.WorldToGrid(entity.Position + new Vector2(0, entity.CollisionShape.Size.Y));
+        bool isGrounded = worldRef.IsPositionSolid(feetPos.X, feetPos.Y);
+        return isGrounded;
+    }
+
+    public void MoveAndSlide(Entity entity)
+    {
+        var possibleMoveOffset = ComputePossibleMove(entity);
+        
+        entity.Position += possibleMoveOffset;
+        if (IsOnFloor(entity))
+        {
+            entity.Velocity.X *= Settings.GroundFriction;
+            entity.Velocity.Y = 0;
+        }
+        else
+        {
+            entity.Velocity.X *= Settings.AirResistance;
+        }
+        
+        // Clamp horizontal velocity
+        if (MathF.Abs(entity.Velocity.X) < Settings.MinimumVelocity)
+        {
+            entity.Velocity.X = 0;
+        }
+    }
+    
+    /* Gets possible movement given the intended velocity from the entity */
+    public Vector2 ComputePossibleMove(Entity entity)
+    {
+        var moveOffset = new Vector2(entity.Velocity.X, entity.Velocity.Y);
+        
+        var colShapeFinalVertical = entity.CollisionShape;
+        colShapeFinalVertical.Position.Y += moveOffset.Y;
 
         var topLeftWorld = colShapeFinalVertical.TopLeft;
         var topRightWorld = colShapeFinalVertical.TopRight;
@@ -51,49 +84,44 @@ public class WalkAction(Entity entityRef, Vector2 moveOffset) : Action(entityRef
         }
 
         if (tilesCollided.Count == 0)
-            return true;
+            return entity.Velocity;
         
         var leftMost  = tilesCollided.OrderBy(p => p.X).First();
         var rightMost = tilesCollided.OrderByDescending(p => p.X).First();
         var topMost   = tilesCollided.OrderBy(p => p.Y).First();
         var bottomMost= tilesCollided.OrderByDescending(p => p.Y).First();
-        if (MoveOffset.Y > 0) // moving down - should snap to top of topmost block
+        if (moveOffset.Y > 0) // moving down - should snap to top of topmost block
         {
             var worldOriginOfTopMostTile = worldRef.GridToWorld(topMost);
             var offset = float.Abs(colShapeFinalVertical.Bottom - worldOriginOfTopMostTile.Y);
-            MoveOffset.Y -= offset;
+            moveOffset.Y -= offset;
         }
-        else if (MoveOffset.Y < 0) // moving up - should snap to bottom of bottommost block
+        else if (moveOffset.Y < 0) // moving up - should snap to bottom of bottommost block
         {
+            // TODO:
             // var worldOriginOfBottomMostTile = worldRef.GridToWorld(bottomMost);
             // var bottomOfTile = worldOriginOfBottomMostTile.Y + Settings.TileSize;
             // var offset = float.Abs(colShapeFinalVertical.Top - bottomOfTile);
             // MoveOffset.Y += offset;
         }
         
-        Console.WriteLine(EntityRef.Velocity);
-        return !MoveOffset.IsNearZero();
+        return moveOffset.IsNearZero() ? Vector2.Zero : moveOffset;
     }
-
-    public override void Perform(World worldRef)
-    {
-        EntityRef.Position += MoveOffset;
-        
-        var feetPos = worldRef.WorldToGrid(EntityRef.Position + new Vector2(0, EntityRef.CollisionShape.Size.Y));
-        bool isGrounded = worldRef.IsPositionSolid(feetPos.X, feetPos.Y);
-        if (isGrounded)
-        {
-            EntityRef.Velocity.X *= Settings.GroundFriction;
-        }
-        else
-        {
-            EntityRef.Velocity.X *= Settings.AirResistance;
-        }
-        
-        // Clamp horizontal velocity
-        if (MathF.Abs(EntityRef.Velocity.X) < Settings.MinimumVelocity)
-        {
-            EntityRef.Velocity.X = 0;
-        }
-    }
+    
+    // public bool IsCollidingWithTile(CollisionShape shape)
+    // {
+    //     var topLeft = _worldRef.WorldToGrid(shape.TopLeft);
+    //     var bottomRight = _worldRef.WorldToGrid(shape.BottomRight);
+    //
+    //     for (int x = topLeft.X; x <= bottomRight.X; x++)
+    //     {
+    //         for (int y = topLeft.Y; y <= bottomRight.Y; y++)
+    //         {
+    //             if (_worldRef.IsPositionSolid(x, y))
+    //                 return true;
+    //         }
+    //     }
+    //
+    //     return false;
+    // }
 }

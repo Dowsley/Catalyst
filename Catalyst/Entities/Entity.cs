@@ -1,42 +1,38 @@
-using System.Collections.Generic;
-using System.Runtime.Intrinsics.X86;
 using Catalyst.Core;
-using Catalyst.Entities.Actions;
+using Catalyst.Entities.Fsm;
+using Catalyst.Entities.Player.States;
 using Catalyst.Globals;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 
 namespace Catalyst.Entities;
 
 public class Entity
 {
-    private Vector2 _colliderSize;
+    protected readonly Vector2 ColliderSize;
+    protected readonly EntityStateMachine States;
     
     public Vector2 Position;
     public Vector2 Velocity;
     public float SpeedFactor { get; set; }
-    public CollisionShape CollisionShape => new(Position, _colliderSize);
-    public bool IsAffectedByGravity;
+    public CollisionShape CollisionShape => new(Position, ColliderSize);
+    public readonly bool IsAffectedByGravity;
+
+    public readonly float Acceleration = 1f;
 
     public Entity(Vector2 pos, Vector2 colliderSize, float speedFactor=1.0f, bool isAffectedByGravity=true)
     {
         Position = pos;
         SpeedFactor = speedFactor;
-        _colliderSize = colliderSize;
+        ColliderSize = colliderSize;
         IsAffectedByGravity = isAffectedByGravity;
+        States = new EntityStateMachine(this);
     }
 
-    public virtual IEnumerable<Action> Update(GameTime gameTime, KeyboardState kState)
+    public virtual void Update(World worldRef, GameTime gameTime)
     {
-        var delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
-        
-        List<Action> actions = [];
-        if (IsAffectedByGravity)
-        {
-            Velocity.Y += Settings.Gravity * delta;
-        }
-        actions.Add(new WalkAction(this, Velocity));
-        return actions;
+        if (States.CurrentState == null)
+            States.ChangeState(new IdleState(this), worldRef, gameTime);
+        States.Update(worldRef, gameTime);
     }
     
     /* Gets speed in pixels (before multiplying by delta) */

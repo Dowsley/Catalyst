@@ -2,15 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Catalyst.Entities;
+using Catalyst.Entities.Player;
 using Catalyst.Globals;
+using Catalyst.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using Action = Catalyst.Entities.Action;
 
 namespace Catalyst.Core;
 
 public class World
 {
+    public CollisionSystem CollisionSystem;
+    
     public readonly List<Point> DebugCollidedTiles = [];
     public readonly List<Point> DebugCheckedTiles = [];
     
@@ -28,6 +31,7 @@ public class World
         _tiles = new bool[sizeX, sizeY];
         _worldSize = new Point(sizeX, sizeY);
         _noise = new FastNoiseLite();
+        CollisionSystem = new CollisionSystem(this);
         SetupNoise();
     }
     
@@ -38,16 +42,9 @@ public class World
 
     public void UpdateAllEntities(GameTime gameTime, KeyboardState kState)
     {
-        Queue<Action> actions = [];
-        
-        foreach (Action a in _playerRef.Update(gameTime, kState)) 
-            actions.Enqueue(a);
-        
-        foreach (var a in _npcs.SelectMany(npc => npc.Update(gameTime, kState)))
-            actions.Enqueue(a);
-
-        foreach (var action in actions.Where(action => action.CanPerform(this)))
-            action.Perform(this);
+        _playerRef.Update(this, gameTime);
+        foreach (var npc in _npcs)
+            npc.Update(this, gameTime);
     }
     
     public void GenerateTerrain()
