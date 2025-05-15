@@ -15,9 +15,14 @@ public class CollisionSystem(World worldRef)
 
     public bool IsOnFloor(Entity entity)
     {
-        var feetPos = worldRef.WorldToGrid(entity.Position + new Vector2(0, entity.CollisionShape.Size.Y));
-        bool isGrounded = worldRef.IsPositionSolid(feetPos.X, feetPos.Y);
-        return isGrounded;
+        var feetPosStart = worldRef.WorldToGrid(entity.Position + new Vector2(0, entity.CollisionShape.Size.Y));
+        var feetPosEnd = worldRef.WorldToGrid(entity.Position + entity.CollisionShape.Size);
+        for (int x = feetPosStart.X; x <= feetPosEnd.X; x++)
+        {
+            if (worldRef.IsPositionSolid(x, feetPosStart.Y))
+                return true;
+        }
+        return false;
     }
 
     public void MoveAndSlide(Entity entity)

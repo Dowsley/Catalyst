@@ -27,7 +27,7 @@ public class Game1 : Game
     private World _world;
     private Player _player;
 
-    private bool _debug = false;
+    private bool _debug = true;
 
     public Game1()
     {
