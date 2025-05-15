@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Catalyst.Entities;
 using Catalyst.Globals;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using Action = Catalyst.Entities.Action;
 
 namespace Catalyst.Core;
 
@@ -12,7 +16,9 @@ public class World
     private readonly bool[,] _tiles;
     private readonly Point _worldSize;
     private readonly FastNoiseLite _noise;
-    private Player _playerRef;    
+    
+    private Player _playerRef;
+    private readonly List<Entity> _npcs = [];
 
     public World(int sizeX, int sizeY)
     {
@@ -24,18 +30,21 @@ public class World
     
     public void Update(GameTime gameTime, KeyboardState kState)
     {
-        UpdatePlayer(gameTime, kState);
-        UpdateEntities(gameTime);
+        UpdateAllEntities(gameTime, kState);
     }
 
-    public void UpdatePlayer(GameTime gameTime, KeyboardState kState)
+    public void UpdateAllEntities(GameTime gameTime, KeyboardState kState)
     {
-        _playerRef.Update(gameTime, kState);
-    }
-
-    public void UpdateEntities(GameTime gameTime)
-    {
+        Queue<Action> actions = [];
         
+        foreach (Action a in _playerRef.Update(gameTime, kState)) 
+            actions.Enqueue(a);
+        
+        foreach (var a in _npcs.SelectMany(npc => npc.Update(gameTime, kState)))
+            actions.Enqueue(a);
+
+        foreach (var action in actions)
+            action.Perform(this);
     }
     
     public void GenerateTerrain()

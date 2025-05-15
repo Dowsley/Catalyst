@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Runtime.Intrinsics.X86;
 using Catalyst.Core;
+using Catalyst.Entities.Actions;
 using Catalyst.Globals;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -16,13 +18,12 @@ public class Entity
     {
         Position = pos;
         SpeedFactor = speedFactor;
-        CollisionShape.Position = pos;
         CollisionShape.Size = colliderSize;
     }
 
-    public virtual void Update(GameTime gameTime, KeyboardState kState)
+    public virtual IEnumerable<Action> Update(GameTime gameTime, KeyboardState kState)
     {
-        CollisionShape.Position = Position;
+        return [new IdleAction(this)];
     }
     
     /* Gets speed in pixels (before multiplying by delta) */
