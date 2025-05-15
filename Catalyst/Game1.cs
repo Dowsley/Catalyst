@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Catalyst.Core;
+using Catalyst.Entities;
 using Catalyst.Globals;
+using Catalyst.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -21,7 +25,7 @@ public class Game1 : Game
     private Camera2D _camera;
     private World _world;
     private Player _player;
-    
+
     private bool _debug = false;
 
     public Game1()
@@ -99,7 +103,15 @@ public class Game1 : Game
                 _spriteBatch.Draw(_dirtTexAtlas, worldPos, _dirtCommonRect, Color.White);
             }
         }
+
+        if (_debug)
+        {
+            DebugDrawCollidedTiles();
+            DebugDrawCheckedTiles();
+        }
+
         _spriteBatch.Draw(_charTex, _player.Position, Color.White);
+        
         if (_debug)
         {
             var debugColor = new Color(255, 255, 255, 255/2);
@@ -122,5 +134,21 @@ public class Game1 : Game
             _renderTarget, destinationRectangle: new Rectangle(
                 0, 0, Settings.NativeWidth * Settings.ResScale, Settings.NativeHeight * Settings.ResScale), Color.White);
         _spriteBatch.End();
+    }
+
+    private void DebugDrawCollidedTiles()
+    {
+        foreach (var worldPos in _world.DebugCollidedTiles.Select(tilePos => new Vector2(tilePos.X, tilePos.Y) * Settings.TileSize))
+        {
+            _spriteBatch.Draw(_dirtTexAtlas, worldPos, _dirtCommonRect, Color.Blue);
+        }
+    }
+    
+    private void DebugDrawCheckedTiles()
+    {
+        foreach (var worldPos in _world.DebugCheckedTiles.Select(tilePos => new Vector2(tilePos.X, tilePos.Y) * Settings.TileSize))
+        {
+            _spriteBatch.Draw(_dirtTexAtlas, worldPos, _dirtCommonRect, Color.Yellow);
+        }
     }
 }

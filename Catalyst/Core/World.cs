@@ -11,6 +11,9 @@ namespace Catalyst.Core;
 
 public class World
 {
+    public readonly List<Point> DebugCollidedTiles = [];
+    public readonly List<Point> DebugCheckedTiles = [];
+    
     private const int SpawnAreaSize = 5;
     
     private readonly bool[,] _tiles;
@@ -43,7 +46,7 @@ public class World
         foreach (var a in _npcs.SelectMany(npc => npc.Update(gameTime, kState)))
             actions.Enqueue(a);
 
-        foreach (var action in actions)
+        foreach (var action in actions.Where(action => action.CanPerform(this)))
             action.Perform(this);
     }
     
@@ -69,6 +72,16 @@ public class World
     public bool GetTileAt(int x, int y)
     {
         return _tiles[x, y];
+    }
+    
+    public bool IsWithinBounds(int x, int y)
+    {
+        return x >= 0 && x < _worldSize.X && y >= 0 && y < _worldSize.Y;
+    }
+    
+    public bool IsPositionSolid(int x, int y)
+    {
+        return !IsWithinBounds(x, y) || GetTileAt(x, y) == true;
     }
     
     public int GetWidth()
@@ -107,5 +120,22 @@ public class World
         
         var random = new Random();
         _noise.SetSeed(random.Next());
+    }
+
+    public Point WorldToGrid(Vector2 worldPos)
+    {
+        return new Point(
+            (int)(worldPos.X / Settings.TileSize),
+            (int)(worldPos.Y / Settings.TileSize)
+        );
+    }
+    
+    /* Returns the world position on the top-left most point of the grid coordinate */
+    public Vector2 GridToWorld(Point gridPos)
+    {
+        return new Vector2(
+            gridPos.X * Settings.TileSize,
+            gridPos.Y * Settings.TileSize
+        );
     }
 }

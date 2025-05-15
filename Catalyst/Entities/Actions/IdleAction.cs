@@ -1,4 +1,5 @@
 using Catalyst.Core;
+using Microsoft.Xna.Framework;
 
 namespace Catalyst.Entities.Actions;
 

@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace Catalyst.Core;
+namespace Catalyst.Graphics;
 
 public class Camera2D
 {

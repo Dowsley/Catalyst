@@ -31,6 +31,8 @@
     <ItemGroup>
       <Folder Include="Content\Graphics\Pack2\" />
       <Folder Include="Entities\Actions\" />
+      <Folder Include="Input\" />
+      <Folder Include="Systems\" />
       <Folder Include="Tiles\" />
       <Folder Include="Utils\" />
     </ItemGroup>

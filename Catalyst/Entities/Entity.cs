@@ -10,20 +10,33 @@ namespace Catalyst.Entities;
 
 public class Entity
 {
-    public Vector2 Position;
-    public float SpeedFactor { get; set; }
-    public CollisionShape CollisionShape;
+    private Vector2 _colliderSize;
     
-    public Entity(Vector2 pos, Vector2 colliderSize, float speedFactor=1.0f)
+    public Vector2 Position;
+    public Vector2 Velocity;
+    public float SpeedFactor { get; set; }
+    public CollisionShape CollisionShape => new(Position, _colliderSize);
+    public bool IsAffectedByGravity;
+
+    public Entity(Vector2 pos, Vector2 colliderSize, float speedFactor=1.0f, bool isAffectedByGravity=true)
     {
         Position = pos;
         SpeedFactor = speedFactor;
-        CollisionShape.Size = colliderSize;
+        _colliderSize = colliderSize;
+        IsAffectedByGravity = isAffectedByGravity;
     }
 
     public virtual IEnumerable<Action> Update(GameTime gameTime, KeyboardState kState)
     {
-        return [new IdleAction(this)];
+        var delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        
+        List<Action> actions = [];
+        if (IsAffectedByGravity)
+        {
+            Velocity.Y += Settings.Gravity * delta;
+        }
+        actions.Add(new WalkAction(this, Velocity));
+        return actions;
     }
     
     /* Gets speed in pixels (before multiplying by delta) */
