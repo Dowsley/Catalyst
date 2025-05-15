@@ -17,11 +17,12 @@ public class Game1 : Game
     private Texture2D _charTex;
     private Texture2D _dirtTexAtlas;
     private readonly Rectangle _dirtCommonRect = new(0, 1, 8, 8);
-    
-    private readonly Camera2D _camera = new();
-    private const float CameraSpeed = 2.0f;
 
-    private World _world = null;
+    private Camera2D _camera;
+    private World _world;
+    private Player _player;
+    
+    private bool _debug = false;
 
     public Game1()
     {
@@ -31,15 +32,18 @@ public class Game1 : Game
 
         _graphics.PreferredBackBufferWidth = Settings.NativeWidth * Settings.ResScale;
         _graphics.PreferredBackBufferHeight = Settings.NativeHeight * Settings.ResScale;
+        
+        _world = new World(Settings.NativeWidth / Settings.TileSize, Settings.NativeHeight / Settings.TileSize);
+        _world.GenerateTerrain();
     }
 
     protected override void Initialize()
     {
         base.Initialize();
         
+        InitializePlayer();
+        _world.SetPlayer(_player);
         _renderTarget = new RenderTarget2D(GraphicsDevice, Settings.NativeWidth, Settings.NativeHeight);
-        _world = new World(Settings.NativeWidth / Settings.TileSize, Settings.NativeHeight / Settings.TileSize);
-        _world.GenerateTerrain();
     }
 
     protected override void LoadContent()
@@ -56,20 +60,9 @@ public class Game1 : Game
         if (kState.IsKeyDown(Keys.Escape))
             Exit();
 
-        if (kState.IsKeyDown(Keys.R))
-        {
-            _world.RandomizeSeed();
-            _world.GenerateTerrain();
-        }
-
-        if (kState.IsKeyDown(Keys.Left))
-            _camera.Position.X -= CameraSpeed;
-        if (kState.IsKeyDown(Keys.Right))
-            _camera.Position.X += CameraSpeed;
-        if (kState.IsKeyDown(Keys.Up))
-            _camera.Position.Y -= CameraSpeed;
-        if (kState.IsKeyDown(Keys.Down))
-            _camera.Position.Y += CameraSpeed;
+        _world.Update(gameTime, kState);
+        _camera.Position = _player.Position - new Vector2(Settings.NativeWidth, Settings.NativeHeight) / 2f;
+        
 
         base.Update(gameTime);
     }
@@ -82,12 +75,20 @@ public class Game1 : Game
         base.Draw(gameTime);
     }
 
+    private void InitializePlayer()
+    {
+        var spawningPos = _world.GetSpawningPosForPlayer();
+        spawningPos.Y -= 5 * Settings.TileSize; //offset in blocks
+        _player = new Player(spawningPos, new Vector2(_charTex.Width, _charTex.Height));
+        _camera = new Camera2D(_player.Position);
+    }
+
     /* Draw to Render Target at native resolution */
     private void RenderAtNativeRes()
     {
         GraphicsDevice.SetRenderTarget(_renderTarget);
         GraphicsDevice.Clear(Color.CornflowerBlue);
-        _spriteBatch.Begin(transformMatrix: _camera.GetViewMatrix());
+        _spriteBatch.Begin(blendState: BlendState.NonPremultiplied, transformMatrix: _camera.GetViewMatrix());
         for (int i = 0; i < _world.GetWidth(); i++)
         {
             for (int j = 0; j < _world.GetHeight(); j++)
@@ -97,6 +98,16 @@ public class Game1 : Game
                 var worldPos = new Vector2(i, j) * Settings.TileSize;
                 _spriteBatch.Draw(_dirtTexAtlas, worldPos, _dirtCommonRect, Color.White);
             }
+        }
+        _spriteBatch.Draw(_charTex, _player.Position, Color.White);
+        if (_debug)
+        {
+            var debugColor = new Color(255, 255, 255, 255/2);
+            var debugTexture = new Texture2D(GraphicsDevice, 1, 1);
+            debugTexture.SetData([Color.White]);
+            _spriteBatch.Draw(debugTexture, new Rectangle(
+                (int)_player.CollisionShape.Position.X, (int)_player.CollisionShape.Position.Y, (int)_player.CollisionShape.Size.X, (int)_player.CollisionShape.Size.Y)
+            , debugColor);
         }
         _spriteBatch.End();
     }
