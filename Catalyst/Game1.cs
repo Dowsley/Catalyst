@@ -103,7 +103,11 @@ public class Game1 : Game
     {
         GraphicsDevice.SetRenderTarget(_renderTarget);
         GraphicsDevice.Clear(Color.CornflowerBlue);
-        _spriteBatch.Begin(blendState: BlendState.NonPremultiplied, transformMatrix: _camera.GetViewMatrix());
+        _spriteBatch.Begin(
+            samplerState: SamplerState.PointClamp,   // No filtering, pixel art. Prevents blending at edges.
+            blendState: BlendState.NonPremultiplied, // Allows transparent pixels to be drawn
+            transformMatrix: _camera.GetViewMatrix()
+        );
         for (int i = 0; i < _world.GetWidth(); i++)
         {
             for (int j = 0; j < _world.GetHeight(); j++)

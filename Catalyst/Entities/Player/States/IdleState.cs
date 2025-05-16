@@ -11,7 +11,6 @@ namespace Catalyst.Entities.Player.States;
 
 public class IdleState(Entity owner) : EntityBaseState(owner)
 {
-	
 	public override EntityBaseState Input()
 	{
 		var kState = Keyboard.GetState();

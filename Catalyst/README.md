@@ -4,8 +4,9 @@
 - [X] Basic world generation
 - [X] Basic Player Entity
 - [X] Working Collision System
-- [ ] Solve Graphical Problems
+- [X] Solve Graphical Problems
 - [ ] Tiles (and sprite) System
 - [ ] World Generation System
 - [ ] Entity System
-- [ ] Input Handling Systems
+- [ ] Player Interaction with the world
+  - Input Handling Systems

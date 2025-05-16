@@ -1,5 +1,4 @@
-using System.Collections.Generic;
-using Catalyst.Entities;
+using System;
 using Microsoft.Xna.Framework;
 
 namespace Catalyst.Core.Fsm;
@@ -25,6 +24,9 @@ public class BaseStateMachine<T>
 	{
 		var newState = CurrentState.Update(worldRef, gameTime);
 		if (newState != null)
+		{
+			Console.WriteLine($"Changing state to: {newState.GetType().Name}");
 			ChangeState(newState, worldRef, gameTime);
+		}
 	}
 }
