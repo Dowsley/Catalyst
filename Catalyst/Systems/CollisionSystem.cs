@@ -9,21 +9,27 @@ using Microsoft.Xna.Framework;
 
 namespace Catalyst.Systems;
 
+/// <summary>
+/// Implements Axis-Aligned Bounding Box (AABB) collision detection and resolution.
+/// Handles entity movement and sliding against solid tiles.
+/// </summary>
+/// <remarks>
+/// <p>
+/// Key strategies to prevent common issues like player being inside wall, which leads to "wall climbing":
+/// </p>
+/// <p>
+/// 1. Accurate <c>IsOnFloor</c> check: Determines if an entity is on the ground by checking 
+///    a thin line just below its bottom edge across its width.
+/// </p>
+/// <p>
+/// 2. <c>CollisionResolutionEpsilon</c>: When a collision is resolved (vertical or horizontal),
+///    the entity is positioned a tiny distance away from the collision surface. This prevents
+///    floating-point inaccuracies from causing micro-overlaps that could lead to the entity
+///    being pushed up or down along walls.
+/// </p>
+/// </remarks>
 public class CollisionSystem(World worldRef, bool debug=false)
 {
-    /*
-     * Implements Axis-Aligned Bounding Box (AABB) collision detection and resolution.
-     * Handles entity movement and sliding against solid tiles.
-     *
-     * Key strategies to prevent common issues like player being inside wall, which leads to "wall climbing":
-     * 1. Accurate IsOnFloor Check: Determines if an entity is on the ground by checking
-     *    a thin line just below its bottom edge across its width.
-     * 2. Collision Resolution Epsilon: When a collision is resolved (vertical or horizontal),
-     *    the entity is positioned a tiny distance (CollisionResolutionEpsilon) away from
-     *    the collision surface. This prevents floating-point inaccuracies from causing micro-overlaps
-     *    that could lead to the entity being pushed up or down along walls.
-     */
-
     private const float CollisionResolutionEpsilon = 0.01f;
     private const float CheckOffsetY = 1.0f; // How many pixels below the entity's bottom to check
     private const float GroundClearancePixels = 2.0f; 
@@ -78,9 +84,15 @@ public class CollisionSystem(World worldRef, bool debug=false)
         }
     }
     
-    /* Gets possible movement given the intended velocity from the entity
-     * Expects entity.Velocity to be units/frame
-     */
+    /// <summary>
+    /// Computes the possible movement offset for the given entity based on its velocity.
+    /// </summary>
+    /// <remarks>
+    /// Expects <paramref name="entity"/>.Velocity to be expressed in units per frame.
+    /// This method evaluates potential collisions and adjusts the movement accordingly.
+    /// </remarks>
+    /// <param name="entity">The entity whose movement is being evaluated.</param>
+    /// <returns>The adjusted movement offset accounting for possible collisions.</returns>
     private Vector2 ComputePossibleMove(Entity entity)
     {
         var moveOffset = new Vector2(entity.Velocity.X, entity.Velocity.Y);
