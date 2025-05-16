@@ -12,20 +12,39 @@ namespace Catalyst.Systems;
 public class CollisionSystem(World worldRef, bool debug=false)
 {
     /*
-     * Uses AABB collision detection
-     * To check if 2 bounding boxes will overlap
+     * Implements Axis-Aligned Bounding Box (AABB) collision detection and resolution.
+     * Handles entity movement and sliding against solid tiles.
+     *
+     * Key strategies to prevent common issues like player being inside wall, which leads to "wall climbing":
+     * 1. Accurate IsOnFloor Check: Determines if an entity is on the ground by checking
+     *    a thin line just below its bottom edge across its width.
+     * 2. Collision Resolution Epsilon: When a collision is resolved (vertical or horizontal),
+     *    the entity is positioned a tiny distance (CollisionResolutionEpsilon) away from
+     *    the collision surface. This prevents floating-point inaccuracies from causing micro-overlaps
+     *    that could lead to the entity being pushed up or down along walls.
      */
-    
-    private readonly World _worldRef = worldRef;
-    private bool _debug = debug;
+
+    private const float CollisionResolutionEpsilon = 0.01f;
+    private const float CheckOffsetY = 1.0f; // How many pixels below the entity's bottom to check
+    private const float GroundClearancePixels = 2.0f; 
+    private const float MinimumEffectiveMovementThreshold = 0.0001f; // Movements smaller than this are considered negligible
 
     public bool IsOnFloor(Entity entity)
     {
-        var feetPosStart = worldRef.WorldToGrid(entity.Position + new Vector2(0, entity.CollisionShape.Size.Y));
-        var feetPosEnd = worldRef.WorldToGrid(entity.Position + entity.CollisionShape.Size);
-        for (int x = feetPosStart.X; x <= feetPosEnd.X; x++)
+        float entityBottomY = entity.CollisionShape.Bottom;
+        float checkY = entityBottomY + CheckOffsetY;
+
+        float entityLeftX = entity.CollisionShape.Left;
+        float entityRightX = entity.CollisionShape.Right;
+
+        Point startGrid = worldRef.WorldToGrid(new Vector2(entityLeftX, checkY));
+        Point endGrid = worldRef.WorldToGrid(new Vector2(entityRightX, checkY));
+
+        int gridCheckY = startGrid.Y; 
+
+        for (int x = startGrid.X; x <= endGrid.X; x++)
         {
-            if (worldRef.IsPositionSolid(x, feetPosStart.Y))
+            if (worldRef.IsPositionSolid(x, gridCheckY))
                 return true;
         }
         return false;
@@ -33,34 +52,58 @@ public class CollisionSystem(World worldRef, bool debug=false)
 
     public void MoveAndSlide(Entity entity)
     {
-        var possibleMoveOffset = ComputePossibleMove(entity);
+        float intendedHorizontalMovementThisFrame = entity.Velocity.X; // Store X velocity before move
+        float intendedVerticalMovementThisFrame = entity.Velocity.Y;
+
+        var possibleMoveOffset = ComputePossibleMove(entity); 
         
         entity.Position += possibleMoveOffset;
-        if (IsOnFloor(entity))
+
+        bool onFloor = IsOnFloor(entity);
+        bool hitCeiling = intendedVerticalMovementThisFrame < 0 && possibleMoveOffset.Y > intendedVerticalMovementThisFrame + CollisionResolutionEpsilon / 2;
+        if (onFloor || hitCeiling)
         {
-            entity.Velocity.X *= Settings.GroundFriction;
-            entity.Velocity.Y = 0;
-        }
-        else
-        {
-            entity.Velocity.X *= Settings.AirResistance;
+            entity.Velocity.Y = 0; 
         }
         
-        // Clamp horizontal velocity
-        if (MathF.Abs(entity.Velocity.X) < Settings.MinimumVelocity)
+        // Check if horizontal movement was impeded significantly
+        bool hitWall = (intendedHorizontalMovementThisFrame > 0 && possibleMoveOffset.X < intendedHorizontalMovementThisFrame - CollisionResolutionEpsilon / 2) ||
+                       (intendedHorizontalMovementThisFrame < 0 && possibleMoveOffset.X > intendedHorizontalMovementThisFrame + CollisionResolutionEpsilon / 2);
+        switch (hitWall)
         {
-            entity.Velocity.X = 0;
+            case true: // Clamp horizontal velocity if it's very small (and a wall wasn't just hit)
+            case false when MathF.Abs(entity.Velocity.X) < Settings.MinimumVelocity:
+                entity.Velocity.X = 0; // If wall hit, zero out X velocity
+                break;
         }
     }
     
-    /* Gets possible movement given the intended velocity from the entity */
-    public Vector2 ComputePossibleMove(Entity entity)
+    /* Gets possible movement given the intended velocity from the entity
+     * Expects entity.Velocity to be units/frame
+     */
+    private Vector2 ComputePossibleMove(Entity entity)
     {
         var moveOffset = new Vector2(entity.Velocity.X, entity.Velocity.Y);
         
+        // First handle vertical movement only
+        var verticalMove = HandleVerticalMovement(entity, moveOffset.Y);
+        // Then handle horizontal movement with the vertical position already adjusted
+        var tempPos = entity.Position;
+        entity.Position = tempPos + new Vector2(0, verticalMove);
+        var horizontalMove = HandleHorizontalMovement(entity, moveOffset.X);
+        entity.Position = tempPos; // Restore original position
+        
+        return new Vector2(horizontalMove, verticalMove);
+    }
+    
+    private float HandleVerticalMovement(Entity entity, float moveY)
+    {
+        if (MathF.Abs(moveY) < MinimumEffectiveMovementThreshold)
+            return 0;
+            
         var colShapeFinalVertical = entity.CollisionShape;
-        colShapeFinalVertical.Position.Y += moveOffset.Y;
-
+        colShapeFinalVertical.Position.Y += moveY;
+        
         var topLeftWorld = colShapeFinalVertical.TopLeft;
         var topRightWorld = colShapeFinalVertical.TopRight;
         var bottomLeftWorld = colShapeFinalVertical.BottomLeft;
@@ -70,21 +113,22 @@ public class CollisionSystem(World worldRef, bool debug=false)
         var topRightGrid = worldRef.WorldToGrid(topRightWorld);
         var bottomLeftGrid = worldRef.WorldToGrid(bottomLeftWorld);
         var bottomRightGrid = worldRef.WorldToGrid(bottomRightWorld);
-
-        var topGrid = topLeftGrid.Y;
-        var bottomGrid = bottomLeftGrid.Y;
+        
+        // Check vertical movement
+        var verticalTiles = new List<Point>();
         var leftGrid = topLeftGrid.X;
         var rightGrid = topRightGrid.X;
-
-        List<Point> tilesCollided = [];
-        for (int i = leftGrid; i <= rightGrid; i++)
+        var topGrid = topLeftGrid.Y;
+        var bottomGrid = bottomLeftGrid.Y;
+        
+        for (int x = leftGrid; x <= rightGrid; x++)
         {
-            for (int j = topGrid; j <= bottomGrid; j++)
+            for (int y = topGrid; y <= bottomGrid; y++)
             {
-                var tilePos = new Point(i, j);
-                if (worldRef.IsPositionSolid(i, j))
+                var tilePos = new Point(x, y);
+                if (worldRef.IsPositionSolid(x, y))
                 {
-                    tilesCollided.Add(tilePos);
+                    verticalTiles.Add(tilePos);
                     if (debug)
                         worldRef.DebugCollidedTiles.Enqueue(tilePos);
                 }
@@ -95,58 +139,111 @@ public class CollisionSystem(World worldRef, bool debug=false)
                 }
             }
         }
-
-        if (tilesCollided.Count == 0)
-            return entity.Velocity;
         
-        var leftMost  = tilesCollided.OrderBy(p => p.X).First();
-        var rightMost = tilesCollided.OrderByDescending(p => p.X).First();
-        var topMost   = tilesCollided.OrderBy(p => p.Y).First();
-        var bottomMost= tilesCollided.OrderByDescending(p => p.Y).First();
-        if (moveOffset.Y > 0) // moving down - should snap to top of topmost block
+        if (verticalTiles.Count == 0)
+            return moveY;
+            
+        // Resolve vertical collision
+        if (moveY > 0) // moving down - should snap to top of topmost block
         {
+            var topMost = verticalTiles.OrderBy(p => p.Y).First();
             var worldOriginOfTopMostTile = worldRef.GridToWorld(topMost);
-            var offset = float.Abs(colShapeFinalVertical.Bottom - worldOriginOfTopMostTile.Y);
-            moveOffset.Y -= offset;
+            float penetration = colShapeFinalVertical.Bottom - worldOriginOfTopMostTile.Y;
+            float allowedMove = moveY - Math.Max(0, penetration); 
+            return Math.Max(0, allowedMove - CollisionResolutionEpsilon);
         }
-        else if (moveOffset.Y < 0) // moving up - should snap to bottom of bottommost block
+        else // moving up - should snap to bottom of bottommost block
         {
+            var bottomMost = verticalTiles.OrderByDescending(p => p.Y).First();
             var worldOriginOfBottomMostTile = worldRef.GridToWorld(bottomMost);
             var bottomOfTile = worldOriginOfBottomMostTile.Y + Settings.TileSize;
-            var offset = float.Abs(colShapeFinalVertical.Top - bottomOfTile);
-            moveOffset.Y += offset;
+            float penetration = bottomOfTile - colShapeFinalVertical.Top;
+            float allowedMove = moveY + Math.Max(0, penetration); 
+            return Math.Min(0, allowedMove + CollisionResolutionEpsilon);
         }
-        if (moveOffset.X > 0) // moving right - should snap to left of leftmost block
-        {
-            var worldOriginOfRightMostTile = worldRef.GridToWorld(rightMost);
-            var offset = float.Abs(colShapeFinalVertical.Right - worldOriginOfRightMostTile.X);
-            moveOffset.X -= offset;
-        }
-        else if (moveOffset.X < 0) // moving left - should snap to right of rightmost block
-        {
-            var worldOriginOfLeftMostTile = worldRef.GridToWorld(leftMost);
-            var rightOfTile = worldOriginOfLeftMostTile.X + Settings.TileSize;
-            var offset = float.Abs(colShapeFinalVertical.Left - rightOfTile);
-            moveOffset.X += offset;
-        }
-        
-        return moveOffset.IsNearZero() ? Vector2.Zero : moveOffset;
     }
     
-    // public bool IsCollidingWithTile(CollisionShape shape)
-    // {
-    //     var topLeft = _worldRef.WorldToGrid(shape.TopLeft);
-    //     var bottomRight = _worldRef.WorldToGrid(shape.BottomRight);
-    //
-    //     for (int x = topLeft.X; x <= bottomRight.X; x++)
-    //     {
-    //         for (int y = topLeft.Y; y <= bottomRight.Y; y++)
-    //         {
-    //             if (_worldRef.IsPositionSolid(x, y))
-    //                 return true;
-    //         }
-    //     }
-    //
-    //     return false;
-    // }
+    private float HandleHorizontalMovement(Entity entity, float moveX)
+    {
+        if (MathF.Abs(moveX) < MinimumEffectiveMovementThreshold)
+            return 0;
+
+        // Create a temporary collision shape representing the entity's position after the intended horizontal move.
+        // The entity's Y position is already adjusted from HandleVerticalMovement.
+        var tempShape = new CollisionShape(
+            entity.CollisionShape.Position + new Vector2(moveX, 0),
+            entity.CollisionShape.Size
+        );
+        
+        // Determine the world Y-coordinate scan range for horizontal collisions.
+        float scanTopWorldY = tempShape.Top;
+        float scanBottomWorldY = tempShape.Bottom - GroundClearancePixels;
+
+        // If clearance makes the scan height negative (entity is shorter than clearance),
+        // then perform the check without clearance to avoid missing collisions.
+        if (scanBottomWorldY < scanTopWorldY)
+        {
+            scanBottomWorldY = tempShape.Bottom;
+        }
+
+        // Convert the X-extents of the tempShape to grid coordinates.
+        var tempShapeTopLeftGrid = worldRef.WorldToGrid(tempShape.TopLeft);
+        var tempShapeTopRightGrid = worldRef.WorldToGrid(tempShape.TopRight);
+        int xLoopStartGrid = tempShapeTopLeftGrid.X;
+        int xLoopEndGrid = tempShapeTopRightGrid.X;
+
+        // Convert the world Y scan range to grid Y scan range for the loop.
+        // Use any valid X within the shape for this conversion (e.g., tempShape.Left).
+        int yLoopStartGrid = worldRef.WorldToGrid(new Vector2(tempShape.Left, scanTopWorldY)).Y;
+        int yLoopEndGrid = worldRef.WorldToGrid(new Vector2(tempShape.Left, scanBottomWorldY)).Y;
+
+        // Ensure yLoopEndGrid is not less than yLoopStartGrid after conversion,
+        // which could happen with very small scan ranges or specific WorldToGrid behaviors.
+        if (yLoopEndGrid < yLoopStartGrid) 
+        {
+            yLoopEndGrid = yLoopStartGrid; // At least scan one row of grid cells.
+        }
+        
+        var horizontalTiles = new List<Point>();
+        for (int x = xLoopStartGrid; x <= xLoopEndGrid; x++)
+        {
+            for (int y = yLoopStartGrid; y <= yLoopEndGrid; y++)
+            {
+                var tilePos = new Point(x, y);
+                if (worldRef.IsPositionSolid(x, y))
+                {
+                    horizontalTiles.Add(tilePos);
+                    if (debug)
+                        worldRef.DebugCollidedTiles.Enqueue(tilePos);
+                }
+                else
+                {
+                    if (debug)
+                        worldRef.DebugCheckedTiles.Enqueue(tilePos);
+                }
+            }
+        }
+        
+        if (horizontalTiles.Count == 0)
+            return moveX;
+            
+        // Resolve horizontal collision
+        if (moveX > 0) // moving right - should snap to left of leftmost block
+        {
+            var leftMost = horizontalTiles.OrderBy(p => p.X).First();
+            var worldOriginOfLeftMostTile = worldRef.GridToWorld(leftMost);
+            float penetration = tempShape.Right - worldOriginOfLeftMostTile.X;
+            float allowedMove = moveX - Math.Max(0, penetration);
+            return Math.Max(0, allowedMove - CollisionResolutionEpsilon);
+        }
+        else // moving left - should snap to right of rightmost block
+        {
+            var rightMost = horizontalTiles.OrderByDescending(p => p.X).First();
+            var worldOriginOfRightMostTile = worldRef.GridToWorld(rightMost);
+            var rightOfTile = worldOriginOfRightMostTile.X + Settings.TileSize;
+            float penetration = rightOfTile - tempShape.Left;
+            float allowedMove = moveX + Math.Max(0, penetration);
+            return Math.Min(0, allowedMove + CollisionResolutionEpsilon);
+        }
+    }
 }

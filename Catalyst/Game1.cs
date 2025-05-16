@@ -27,7 +27,7 @@ public class Game1 : Game
     private World _world;
     private Player _player;
 
-    private bool _debug = true;
+    private bool _debug = false;
 
     public Game1()
     {
@@ -66,12 +66,14 @@ public class Game1 : Game
         if (kState.IsKeyDown(Keys.Escape))
             Exit();
 
-        if (mState.LeftButton == ButtonState.Pressed)
+        var lmbPressed = mState.LeftButton == ButtonState.Pressed;
+        var rmbPressed = mState.RightButton == ButtonState.Pressed;
+        if (lmbPressed || rmbPressed)
         {
             var mousePos = new Vector2(mState.X, mState.Y);
             var worldPos = mousePos / Settings.ResScale + _camera.Position;
             var gridPos = _world.WorldToGrid(worldPos);
-            _world.SetTileAt(gridPos.X, gridPos.Y, true);
+            _world.SetTileAt(gridPos.X, gridPos.Y, lmbPressed);
         }
 
         _world.Update(gameTime, kState);

@@ -31,7 +31,7 @@ public class BaseMoveAirState(Entity owner) : EntityBaseState(owner)
 		Owner.Velocity.X = MathHelper.Lerp(
 			Owner.Velocity.X,
 			motion * realPlayerSpeed,
-			motion != 0? Owner.Acceleration : Settings.GroundFriction
+			motion != 0? Owner.Acceleration : Settings.AirResistance
 		);
 		
 		worldRef.CollisionSystem.MoveAndSlide(Owner);
