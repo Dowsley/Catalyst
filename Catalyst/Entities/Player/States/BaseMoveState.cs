@@ -24,6 +24,7 @@ public class BaseMoveState(Entity owner) : EntityBaseState(owner)
 	{
 		var motion = GetMovementInput();
 		// TODO: Set sprite direction
+		
 		// if (motion < 0)
 		// 	entity.set_sprite_dir(entity.SPRITE_DIRS.LEFT)
 		// elif motion > 0:

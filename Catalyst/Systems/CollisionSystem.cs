@@ -9,9 +9,15 @@ using Microsoft.Xna.Framework;
 
 namespace Catalyst.Systems;
 
-public class CollisionSystem(World worldRef)
+public class CollisionSystem(World worldRef, bool debug=false)
 {
+    /*
+     * Uses AABB collision detection
+     * To check if 2 bounding boxes will overlap
+     */
+    
     private readonly World _worldRef = worldRef;
+    private bool _debug = debug;
 
     public bool IsOnFloor(Entity entity)
     {
@@ -79,11 +85,13 @@ public class CollisionSystem(World worldRef)
                 if (worldRef.IsPositionSolid(i, j))
                 {
                     tilesCollided.Add(tilePos);
-                    worldRef.DebugCollidedTiles.Add(tilePos);
+                    if (debug)
+                        worldRef.DebugCollidedTiles.Enqueue(tilePos);
                 }
                 else
                 {
-                    worldRef.DebugCheckedTiles.Add(tilePos);
+                    if (debug)
+                        worldRef.DebugCheckedTiles.Enqueue(tilePos);
                 }
             }
         }
@@ -103,11 +111,23 @@ public class CollisionSystem(World worldRef)
         }
         else if (moveOffset.Y < 0) // moving up - should snap to bottom of bottommost block
         {
-            // TODO:
-            // var worldOriginOfBottomMostTile = worldRef.GridToWorld(bottomMost);
-            // var bottomOfTile = worldOriginOfBottomMostTile.Y + Settings.TileSize;
-            // var offset = float.Abs(colShapeFinalVertical.Top - bottomOfTile);
-            // MoveOffset.Y += offset;
+            var worldOriginOfBottomMostTile = worldRef.GridToWorld(bottomMost);
+            var bottomOfTile = worldOriginOfBottomMostTile.Y + Settings.TileSize;
+            var offset = float.Abs(colShapeFinalVertical.Top - bottomOfTile);
+            moveOffset.Y += offset;
+        }
+        if (moveOffset.X > 0) // moving right - should snap to left of leftmost block
+        {
+            var worldOriginOfRightMostTile = worldRef.GridToWorld(rightMost);
+            var offset = float.Abs(colShapeFinalVertical.Right - worldOriginOfRightMostTile.X);
+            moveOffset.X -= offset;
+        }
+        else if (moveOffset.X < 0) // moving left - should snap to right of rightmost block
+        {
+            var worldOriginOfLeftMostTile = worldRef.GridToWorld(leftMost);
+            var rightOfTile = worldOriginOfLeftMostTile.X + Settings.TileSize;
+            var offset = float.Abs(colShapeFinalVertical.Left - rightOfTile);
+            moveOffset.X += offset;
         }
         
         return moveOffset.IsNearZero() ? Vector2.Zero : moveOffset;

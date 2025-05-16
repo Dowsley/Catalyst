@@ -38,7 +38,7 @@ public class Game1 : Game
         _graphics.PreferredBackBufferWidth = Settings.NativeWidth * Settings.ResScale;
         _graphics.PreferredBackBufferHeight = Settings.NativeHeight * Settings.ResScale;
         
-        _world = new World(Settings.NativeWidth / Settings.TileSize, Settings.NativeHeight / Settings.TileSize);
+        _world = new World(Settings.NativeWidth / Settings.TileSize, Settings.NativeHeight / Settings.TileSize, _debug);
         _world.GenerateTerrain();
     }
 
@@ -61,14 +61,22 @@ public class Game1 : Game
     protected override void Update(GameTime gameTime)
     {
         var kState = Keyboard.GetState();
+        var mState = Mouse.GetState();
         
         if (kState.IsKeyDown(Keys.Escape))
             Exit();
 
+        if (mState.LeftButton == ButtonState.Pressed)
+        {
+            var mousePos = new Vector2(mState.X, mState.Y);
+            var worldPos = mousePos / Settings.ResScale + _camera.Position;
+            var gridPos = _world.WorldToGrid(worldPos);
+            _world.SetTileAt(gridPos.X, gridPos.Y, true);
+        }
+
         _world.Update(gameTime, kState);
         _camera.Position = _player.Position - new Vector2(Settings.NativeWidth, Settings.NativeHeight) / 2f;
         
-
         base.Update(gameTime);
     }
     

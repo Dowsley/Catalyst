@@ -16,7 +16,6 @@ public class EntityStateMachine(Entity owner)
 		var newState = currentState.Input();
 		if (newState != null)
 		{
-			Console.WriteLine($"Changing to... {newState.GetType().Name}");
 			ChangeState(newState, worldRef, gameTime);
 		}
 	}

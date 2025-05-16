@@ -24,6 +24,7 @@ public class JumpState(Entity owner) : BaseMoveAirState(owner)
 			return newState;
 
 		// TODO: Jump animation.
+		
 		// var enter_transition = Utils.is_number_in_range(
 		// 	entity.velocity.y,
 		// 	-entity.jump_and_fall_transition_threshold,

@@ -10,16 +10,6 @@ namespace Catalyst.Entities.Player.States;
 
 public class BaseMoveAirState(Entity owner) : EntityBaseState(owner)
 {
-	public override EntityBaseState Input()
-	{
-		// TODO: Dash
-		// if Input.is_action_just_pressed('dash'):
-		// 	return dash_state
-		// return null
-		
-		return null;
-	}
-
 	public override BaseState<Entity> Update(World worldRef, GameTime gameTime)
 	{
 		var motion = 0;
@@ -45,14 +35,12 @@ public class BaseMoveAirState(Entity owner) : EntityBaseState(owner)
 		);
 		
 		worldRef.CollisionSystem.MoveAndSlide(Owner);
-		if (worldRef.CollisionSystem.IsOnFloor(Owner))
-		{
-			if (motion != 0)
-				return new WalkState(Owner);
-			
-			return new IdleState(Owner);
-		}
+		if (!worldRef.CollisionSystem.IsOnFloor(Owner))
+			return null;
+		
+		if (motion != 0)
+			return new WalkState(Owner);
+		return new IdleState(Owner);
 
-		return null;
 	}
 }

@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Catalyst.Entities;
 using Catalyst.Entities.Player;
 using Catalyst.Globals;
 using Catalyst.Systems;
+using Catalyst.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -14,8 +16,10 @@ public class World
 {
     public CollisionSystem CollisionSystem;
     
-    public readonly List<Point> DebugCollidedTiles = [];
-    public readonly List<Point> DebugCheckedTiles = [];
+    public readonly Queue<Point> DebugCollidedTiles = [];
+    public readonly Queue<Point> DebugCheckedTiles = [];
+    public float DebugVanishTimeSecs = 0.5f;
+    public float DebugTimer = 0f;
     
     private const int SpawnAreaSize = 5;
     
@@ -26,17 +30,28 @@ public class World
     private Player _playerRef;
     private readonly List<Entity> _npcs = [];
 
-    public World(int sizeX, int sizeY)
+    private bool _debug;
+
+    public World(int sizeX, int sizeY, bool debug=false)
     {
+        _debug = debug;
+        
         _tiles = new bool[sizeX, sizeY];
         _worldSize = new Point(sizeX, sizeY);
         _noise = new FastNoiseLite();
-        CollisionSystem = new CollisionSystem(this);
+        CollisionSystem = new CollisionSystem(this, _debug);
         SetupNoise();
     }
     
     public void Update(GameTime gameTime, KeyboardState kState)
     {
+        DebugTimer += TimeUtils.GetDelta(gameTime);
+        if (DebugTimer >= DebugVanishTimeSecs)
+        {
+            DebugCollidedTiles.Clear();
+            DebugCheckedTiles.Clear();
+            DebugTimer = 0f;
+        }
         UpdateAllEntities(gameTime, kState);
     }
 
@@ -134,5 +149,13 @@ public class World
             gridPos.X * Settings.TileSize,
             gridPos.Y * Settings.TileSize
         );
+    }
+
+    public void SetTileAt(int x, int y, bool isSolid)
+    {
+        if (IsWithinBounds(x, y))
+        {
+            _tiles[x, y] = isSolid;
+        }
     }
 }
