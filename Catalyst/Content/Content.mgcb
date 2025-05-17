@@ -659,3 +659,8 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Graphics/sample_char.png
+
+#begin Fonts/Andy Bold.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/build:Fonts/Andy Bold.spritefont

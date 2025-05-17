@@ -15,9 +15,11 @@ public class Game1 : Game
 {
     /* Rendering */
     private readonly GraphicsDeviceManager _graphics;
-    private SpriteBatch _spriteBatch = null!;
+    private SpriteBatch _worldSpriteBatch = null!;
+    private SpriteBatch _uiSpriteBatch = null!;
     private RenderTarget2D _renderTarget = null!;
     private Texture2D _charTex = null!;
+    private SpriteFont _mainFont = null!;
 
     /* Core */
     private readonly TileRegistry _tileRegistry = new();
@@ -33,7 +35,7 @@ public class Game1 : Game
     /* Test gameplay */
     private readonly List<string> _placeableTypes = ["GRASS", "STONE", "OAK_LOG"];
     private int _currType = 0;
-
+    private bool _canPressAgain = true;
     
     public Game1()
     {
@@ -52,10 +54,13 @@ public class Game1 : Game
 
     protected override void LoadContent()
     {
-        _spriteBatch = new SpriteBatch(GraphicsDevice);
+        _worldSpriteBatch = new SpriteBatch(GraphicsDevice);
+        _uiSpriteBatch = new SpriteBatch(GraphicsDevice);
+        
         _debugTexture = new Texture2D(GraphicsDevice, 1, 1);
         _debugTexture.SetData([Color.White]);
         _charTex = Content.Load<Texture2D>("Graphics/sample_char");
+        _mainFont = Content.Load<SpriteFont>("Fonts/Andy Bold");
 
         InitializeTileTypes();
         
@@ -66,24 +71,28 @@ public class Game1 : Game
             _debug
         );
         _world.GenerateTerrain();
-        
         InitializePlayer();
-        _world.SetPlayer(_player);
     }
 
     protected override void Update(GameTime gameTime)
     {
         var kState = Keyboard.GetState();
         var mState = Mouse.GetState();
-        
+
         if (kState.IsKeyDown(Keys.Escape))
-            Exit();
-        if (kState.IsKeyDown(Keys.Tab))
         {
+            Exit();
+        }
+
+        if (kState.IsKeyDown(Keys.Tab) && _canPressAgain)
+        {
+            _canPressAgain = false;
             _currType += 1;
             if (_currType >= _placeableTypes.Count)
                 _currType = 0;
         }
+        if (kState.IsKeyUp(Keys.Tab))
+            _canPressAgain = true;
 
         var lmbPressed = mState.LeftButton == ButtonState.Pressed;
         var rmbPressed = mState.RightButton == ButtonState.Pressed;
@@ -103,15 +112,15 @@ public class Game1 : Game
     
     protected override void Draw(GameTime gameTime)
     {
-        RenderAtNativeRes();
-        RenderAtScaledRes();
+        MainRender();
+        ScaleResolution();
 
         base.Draw(gameTime);
     }
 
     private void DrawTile(int x, int y, Sprite2D sprite)
     {
-        _spriteBatch.Draw(
+        _worldSpriteBatch.Draw(
             sprite.Texture,
             new Vector2(x, y) * Settings.TileSize,
             sprite.SourceRect,
@@ -125,6 +134,8 @@ public class Game1 : Game
         spawningPos.Y -= 5 * Settings.TileSize; //offset in blocks
         _player = new Player(spawningPos, new Vector2(_charTex.Width, _charTex.Height));
         _camera = new Camera2D(_player.Position);
+        
+        _world.SetPlayer(_player);
     }
 
     private void InitializeTileTypes()
@@ -147,8 +158,6 @@ public class Game1 : Game
         
         var emptyType = new TileType("EMPTY", "Empty", "Just air", 0, false);
         emptyType.AddSpriteVariant(new Sprite2D(emptyTexture, new Rectangle(0, 0, Settings.TileSize, Settings.TileSize)));
-        
-        
 
         _tileRegistry.Register(grassTileType.Id, grassTileType);
         _tileRegistry.Register(stoneTileType.Id, stoneTileType);
@@ -156,16 +165,33 @@ public class Game1 : Game
         _tileRegistry.Register(emptyType.Id, emptyType);
     }
 
-    /* Draw to Render Target at native resolution */
-    private void RenderAtNativeRes()
+    /* Draws to Render Target at native resolution */
+    private void MainRender()
     {
         GraphicsDevice.SetRenderTarget(_renderTarget);
         GraphicsDevice.Clear(Color.CornflowerBlue);
-        _spriteBatch.Begin(
+        _worldSpriteBatch.Begin(
             samplerState: SamplerState.PointClamp,   // No filtering, pixel art. Prevents blending at edges.
             blendState: BlendState.NonPremultiplied, // Allows transparent pixels to be drawn
             transformMatrix: _camera.GetViewMatrix()
         );
+        
+        DrawTiles();
+        if (_debug)
+        {
+            DebugDrawCollidedTiles();
+            DebugDrawCheckedTiles();
+            DebugDrawPlayerHitBox();
+        }
+        
+        _worldSpriteBatch.Draw(_charTex, _player.Position, Color.White);
+        _worldSpriteBatch.End();
+        
+        DrawUI();
+    }
+
+    private void DrawTiles()
+    {
         for (int i = 0; i < _world.GetWidth(); i++)
         {
             for (int j = 0; j < _world.GetHeight(); j++)
@@ -174,41 +200,52 @@ public class Game1 : Game
                 DrawTile(i, j, sprite);
             }
         }
+    }
 
-        if (_debug)
-        {
-            DebugDrawCollidedTiles();
-            DebugDrawCheckedTiles();
-        }
+    private void DrawUI()
+    {
+        _uiSpriteBatch.Begin();
 
-        _spriteBatch.Draw(_charTex, _player.Position, Color.White);
-        
-        if (_debug)
-        {
-            _spriteBatch.Draw(_debugTexture, new Rectangle(
-                (int)_player.CollisionShape.Position.X, (int)_player.CollisionShape.Position.Y, (int)_player.CollisionShape.Size.X, (int)_player.CollisionShape.Size.Y)
-            , _debugColor);
-        }
-        _spriteBatch.End();
+        var text = $"{_placeableTypes[_currType]}";
+        var topLeftMargin = new Vector2(10, 10);
+        _uiSpriteBatch.DrawString(
+            _mainFont,
+            text,
+            topLeftMargin,
+            Color.LightGreen,
+            0f,
+            Vector2.Zero,
+            0.5f,
+            SpriteEffects.None,
+            0.5f
+        );
+        _uiSpriteBatch.End();
     }
 
     /* Draws Render Target scaled to window size */
-    private void RenderAtScaledRes()
+    private void ScaleResolution()
     {
         GraphicsDevice.SetRenderTarget(null);
         GraphicsDevice.Clear(Color.Black);
-        _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-        _spriteBatch.Draw(
+        _worldSpriteBatch.Begin(samplerState: SamplerState.PointClamp);
+        _worldSpriteBatch.Draw(
             _renderTarget, destinationRectangle: new Rectangle(
                 0, 0, Settings.NativeWidth * Settings.ResScale, Settings.NativeHeight * Settings.ResScale), Color.White);
-        _spriteBatch.End();
+        _worldSpriteBatch.End();
+    }
+    
+    private void DebugDrawPlayerHitBox()
+    {
+        _worldSpriteBatch.Draw(_debugTexture, new Rectangle(
+                (int)_player.CollisionShape.Position.X, (int)_player.CollisionShape.Position.Y, (int)_player.CollisionShape.Size.X, (int)_player.CollisionShape.Size.Y)
+            , _debugColor);
     }
 
     private void DebugDrawCollidedTiles()
     {
         foreach (var worldPos in _world.DebugCollidedTiles.Select(tilePos => new Vector2(tilePos.X, tilePos.Y) * Settings.TileSize))
         {
-            _spriteBatch.Draw(_debugTexture, worldPos, new Rectangle(0, 1, 8, 8), Color.Blue);
+            _worldSpriteBatch.Draw(_debugTexture, worldPos, new Rectangle(0, 1, 8, 8), Color.Blue);
         }
     }
     
@@ -217,7 +254,7 @@ public class Game1 : Game
         foreach (var worldPos in _world.DebugCheckedTiles.Select(tilePos => new Vector2(tilePos.X, tilePos.Y) * Settings.TileSize))
         {
             
-            _spriteBatch.Draw(_debugTexture, worldPos, new Rectangle(0, 1, 8, 8), Color.Yellow);
+            _worldSpriteBatch.Draw(_debugTexture, worldPos, new Rectangle(0, 1, 8, 8), Color.Yellow);
         }
     }
 }

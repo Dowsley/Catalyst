@@ -23,6 +23,13 @@
 				"MakeSquare": "False",
 				"TextureFormat": "Color"
 			}
+		},
+		"fonts": {
+			"path": "Fonts/*.spritefont",
+			"recursive": "True",
+			"action": "build",
+			"importer": "FontDescriptionImporter",
+			"processor": "FontDescriptionProcessor"
 		}
 	}
 }
