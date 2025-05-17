@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Catalyst.Core;
 using Catalyst.Entities.Player;
@@ -18,8 +20,9 @@ public class Game1 : Game
     private SpriteBatch _worldSpriteBatch = null!;
     private SpriteBatch _uiSpriteBatch = null!;
     private RenderTarget2D _renderTarget = null!;
-    private Texture2D _charTex = null!;
     private SpriteFont _mainFont = null!;
+    private Texture2D _charTex = null!;
+    private Dictionary<string, Texture2D> _textures = new();
 
     /* Core */
     private readonly TileRegistry _tileRegistry = new();
@@ -50,20 +53,8 @@ public class Game1 : Game
     {
         base.Initialize();
         _renderTarget = new RenderTarget2D(GraphicsDevice, Settings.NativeWidth, Settings.NativeHeight);
-    }
-
-    protected override void LoadContent()
-    {
-        _worldSpriteBatch = new SpriteBatch(GraphicsDevice);
-        _uiSpriteBatch = new SpriteBatch(GraphicsDevice);
         
-        _debugTexture = new Texture2D(GraphicsDevice, 1, 1);
-        _debugTexture.SetData([Color.White]);
-        _charTex = Content.Load<Texture2D>("Graphics/sample_char");
-        _mainFont = Content.Load<SpriteFont>("Fonts/Andy Bold");
-
         InitializeTileTypes();
-        
         _world = new World(
             Settings.NativeWidth / Settings.TileSize, 
             Settings.NativeHeight / Settings.TileSize,
@@ -72,6 +63,18 @@ public class Game1 : Game
         );
         _world.GenerateTerrain();
         InitializePlayer();
+    }
+
+    protected override void LoadContent()
+    {
+        _worldSpriteBatch = new SpriteBatch(GraphicsDevice);
+        _uiSpriteBatch = new SpriteBatch(GraphicsDevice);
+        LoadTextures();
+        
+        _debugTexture = new Texture2D(GraphicsDevice, 1, 1);
+        _debugTexture.SetData([Color.White]);
+        _charTex = Content.Load<Texture2D>("Graphics/sample_char");
+        _mainFont = Content.Load<SpriteFont>("Fonts/Andy Bold");
     }
 
     protected override void Update(GameTime gameTime)
@@ -120,12 +123,46 @@ public class Game1 : Game
 
     private void DrawTile(int x, int y, Sprite2D sprite)
     {
+        Texture2D tex = LookupTexture(sprite.TextureId);
         _worldSpriteBatch.Draw(
-            sprite.Texture,
+            tex,
             new Vector2(x, y) * Settings.TileSize,
             sprite.SourceRect,
             Color.White
         );
+    }
+
+    private Texture2D LookupTexture(string texId)
+    {
+        return _textures[texId];
+    }
+
+    private void LoadTextures()
+    {
+        string graphicsPath = Path.Combine(Content.RootDirectory, "Graphics/Pack2");
+
+        if (!Directory.Exists(graphicsPath))
+        {
+            throw new Exception($"Directory not found: {graphicsPath}");
+        }
+
+        var textureFiles = Directory.GetFiles(graphicsPath, "*.png", SearchOption.AllDirectories);
+
+        foreach (var filePath in textureFiles)
+        {
+            using var stream = File.OpenRead(filePath);
+            var texture = Texture2D.FromStream(GraphicsDevice, stream);
+
+            // Extract relative name without extension
+            var textureKey = Path.GetFileNameWithoutExtension(filePath);
+
+            _textures[textureKey] = texture;
+        }
+        
+        // Special empty texture
+        var emptyTexture = new Texture2D(GraphicsDevice, 1, 1);
+        emptyTexture.SetData([Color.Transparent]);
+        _textures["Empty"] = emptyTexture;
     }
 
     private void InitializePlayer()
@@ -140,24 +177,18 @@ public class Game1 : Game
 
     private void InitializeTileTypes()
     {
-        var dirtTexture = Content.Load<Texture2D>("Graphics/Pack2/Tiles/Grass");
-        var stoneTexture = Content.Load<Texture2D>("Graphics/Pack2/Tiles/Stone");
-        var oakLogTexture = Content.Load<Texture2D>("Graphics/Pack2/Tiles/Oak Logs");
-        var emptyTexture = new Texture2D(GraphicsDevice, 1, 1);
-        emptyTexture.SetData([Color.Transparent]);
-        
         // TODO: Implement data-driven approach. All types should be XMLs, and loaded by a loader inside tileRegistry.
         var grassTileType = new TileType("GRASS", "Grass", "Just some grass", 100, true);
-        grassTileType.AddSpriteVariant(new Sprite2D(dirtTexture, new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
+        grassTileType.AddSpriteVariant(new Sprite2D("Grass", new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
         
         var stoneTileType = new TileType("STONE", "Stone", "Just stone", 500, true);
-        stoneTileType.AddSpriteVariant(new Sprite2D(stoneTexture, new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
+        stoneTileType.AddSpriteVariant(new Sprite2D("Stone", new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
         
         var oakLogType = new TileType("OAK_LOG", "Oak Log", "Just oak log", 200, true);
-        oakLogType.AddSpriteVariant(new Sprite2D(oakLogTexture, new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
+        oakLogType.AddSpriteVariant(new Sprite2D("Oak Logs", new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
         
         var emptyType = new TileType("EMPTY", "Empty", "Just air", 0, false);
-        emptyType.AddSpriteVariant(new Sprite2D(emptyTexture, new Rectangle(0, 0, Settings.TileSize, Settings.TileSize)));
+        emptyType.AddSpriteVariant(new Sprite2D("Empty", new Rectangle(0, 0, Settings.TileSize, Settings.TileSize)));
 
         _tileRegistry.Register(grassTileType.Id, grassTileType);
         _tileRegistry.Register(stoneTileType.Id, stoneTileType);

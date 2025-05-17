@@ -33,8 +33,14 @@
       <Folder Include="Content\Audio\" />
       <Folder Include="Content\Graphics\Pack2\" />
     </ItemGroup>
+    <ItemGroup>
+        <None Include="Content\**\*.*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
     <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
         <Message Text="Restoring dotnet tools" Importance="High"/>
         <Exec Command="dotnet tool restore"/>
     </Target>
 </Project>
+

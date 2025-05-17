@@ -26,6 +26,9 @@ namespace Catalyst.Systems;
 ///    floating-point inaccuracies from causing micro-overlaps that could lead to the entity
 ///    being pushed up or down along walls.
 /// </p>
+/// <p>
+/// Known limitations: If entity is moving two fast, it CAN go through walls. Will eventually be fixed when needed.
+/// </p>
 /// </remarks>
 public class CollisionSystem(World worldRef, bool debug=false)
 {

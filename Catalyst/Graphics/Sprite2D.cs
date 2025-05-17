@@ -4,15 +4,15 @@ namespace Catalyst.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-public class Sprite2D(Texture2D texture, Rectangle? sourceRect = null)
+public class Sprite2D(string textureId, Rectangle sourceRect)
 {
-    public readonly Texture2D Texture = texture;
-    public Rectangle? SourceRect { get; private set; } = sourceRect;
+    public readonly string TextureId = textureId;
+    public Rectangle SourceRect { get; private set; } = sourceRect;
     
     /// <summary>
-    /// Gets the size of the source rectangle or the full texture if no source is defined.
+    /// Gets the size of the source rectangle
     /// </summary>
-    public Point Size => SourceRect?.Size ?? new Point(Texture.Width, Texture.Height);
+    public Point Size => SourceRect.Size;
 
     /// <summary>
     /// Sets the source rectangle using pixel units.
