@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Catalyst.Core;
 using Catalyst.Core.Fsm;
 using Microsoft.Xna.Framework;
@@ -12,7 +11,7 @@ public abstract class EntityBaseState(Entity owner) : BaseState<Entity>(owner)
 		// TODO: Sprite changes should happen here
 	}
 	
-	public virtual EntityBaseState Input()
+	public virtual EntityBaseState? Input()
 	{
 		return null;
 	}

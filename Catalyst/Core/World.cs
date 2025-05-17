@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using Catalyst.Entities;
 using Catalyst.Entities.Player;
 using Catalyst.Globals;
@@ -21,7 +19,7 @@ public class World
     
     public readonly Queue<Point> DebugCollidedTiles = [];
     public readonly Queue<Point> DebugCheckedTiles = [];
-    public float DebugVanishTimeSecs = 0.5f;
+    public const float DebugVanishTimeSecs = 0.5f;
     public float DebugTimer = 0f;
     
     private const int SpawnAreaSize = 5;
@@ -29,12 +27,12 @@ public class World
     private readonly Point _worldSize;
     private readonly Tile[,] _tiles;
     private readonly FastNoiseLite _noise = new();
-    private Random _random;
+    private Random _random = null!;
     
-    private Player _playerRef;
+    private Player _playerRef = null!;
     private readonly List<Entity> _npcs = [];
 
-    private bool _debug;
+    private readonly bool _debug;
 
     public World(int sizeX, int sizeY, TileRegistry tileRegistry, bool debug=false)
     {

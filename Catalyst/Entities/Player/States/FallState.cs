@@ -1,6 +1,5 @@
 using Catalyst.Core;
 using Catalyst.Core.Fsm;
-using Catalyst.Globals;
 using Microsoft.Xna.Framework;
 
 namespace Catalyst.Entities.Player.States;
@@ -13,7 +12,7 @@ public class FallState(Entity owner) : BaseMoveAirState(owner)
 		// because it only starts AFTER the transition ends
     }
 
-    public override BaseState<Entity> Update(World worldRef, GameTime gameTime)
+    public override BaseState<Entity>? Update(World worldRef, GameTime gameTime)
     {
         var newState = base.Update(worldRef, gameTime);
         if (newState != null)

@@ -10,7 +10,7 @@ namespace Catalyst.Entities.Player.States;
 
 public class BaseMoveAirState(Entity owner) : EntityBaseState(owner)
 {
-	public override BaseState<Entity> Update(World worldRef, GameTime gameTime)
+	public override BaseState<Entity>? Update(World worldRef, GameTime gameTime)
 	{
 		var motion = 0;
 		var kState = Keyboard.GetState();

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Catalyst.Core;
-using Catalyst.Core.Extensions;
 using Catalyst.Entities;
 using Catalyst.Globals;
 using Microsoft.Xna.Framework;
@@ -124,7 +123,7 @@ public class CollisionSystem(World worldRef, bool debug=false)
         var topLeftGrid = worldRef.WorldToGrid(topLeftWorld);
         var topRightGrid = worldRef.WorldToGrid(topRightWorld);
         var bottomLeftGrid = worldRef.WorldToGrid(bottomLeftWorld);
-        var bottomRightGrid = worldRef.WorldToGrid(bottomRightWorld);
+        // var bottomRightGrid = worldRef.WorldToGrid(bottomRightWorld);
         
         // Check vertical movement
         var verticalTiles = new List<Point>();

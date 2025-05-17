@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Catalyst.Core;
 using Catalyst.Core.Fsm;
 using Catalyst.Entities.Fsm;
@@ -11,7 +10,7 @@ namespace Catalyst.Entities.Player.States;
 
 public class IdleState(Entity owner) : EntityBaseState(owner)
 {
-	public override EntityBaseState Input()
+	public override EntityBaseState? Input()
 	{
 		var kState = Keyboard.GetState();
 		if (kState.IsKeyDown(Keys.A) || kState.IsKeyDown(Keys.D))
@@ -22,7 +21,7 @@ public class IdleState(Entity owner) : EntityBaseState(owner)
 		return null;
 	}
 
-	public override BaseState<Entity> Update(World worldRef, GameTime gameTime)
+	public override BaseState<Entity>? Update(World worldRef, GameTime gameTime)
 	{
 		Owner.Velocity.Y += Settings.Gravity * TimeUtils.GetDelta(gameTime);
 		Owner.Velocity.X = MathHelper.Lerp(Owner.Velocity.X, 0f, Settings.GroundFriction);

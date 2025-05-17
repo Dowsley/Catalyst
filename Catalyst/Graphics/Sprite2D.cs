@@ -1,6 +1,3 @@
-using System.Drawing;
-using Microsoft.Xna.Framework.Graphics;
-
 namespace Catalyst.Graphics;
 
 

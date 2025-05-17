@@ -11,7 +11,7 @@ namespace Catalyst.Entities.Player.States;
 public class BaseMoveState(Entity owner) : EntityBaseState(owner)
 {
 	
-	public override EntityBaseState Input()
+	public override EntityBaseState? Input()
 	{
 		var kState = Keyboard.GetState();
 		if (kState.IsKeyDown(Keys.Space))
@@ -20,7 +20,7 @@ public class BaseMoveState(Entity owner) : EntityBaseState(owner)
 		return null;
 	}
 	
-	public override BaseState<Entity> Update(World worldRef, GameTime gameTime)
+	public override BaseState<Entity>? Update(World worldRef, GameTime gameTime)
 	{
 		var motion = GetMovementInput();
 		// TODO: Set sprite direction

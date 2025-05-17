@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using Catalyst.Entities;
 using Microsoft.Xna.Framework;
 
 namespace Catalyst.Core.Fsm;
@@ -11,7 +9,7 @@ public abstract class BaseState<T>(T owner)
     public virtual void Enter(World worldRef, GameTime gameTime) { }
     public virtual void Exit(World worldRef, GameTime gameTime) { }
 
-    public virtual BaseState<T> Update(World worldRef, GameTime gameTime)
+    public virtual BaseState<T>? Update(World worldRef, GameTime gameTime)
     {
         return null;
     }

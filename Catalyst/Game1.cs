@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Catalyst.Core;
-using Catalyst.Entities;
 using Catalyst.Entities.Player;
 using Catalyst.Globals;
 using Catalyst.Graphics;
@@ -18,23 +15,23 @@ public class Game1 : Game
 {
     /* Rendering */
     private readonly GraphicsDeviceManager _graphics;
-    private SpriteBatch _spriteBatch;
-    private RenderTarget2D _renderTarget;
-    private Texture2D _charTex;
+    private SpriteBatch _spriteBatch = null!;
+    private RenderTarget2D _renderTarget = null!;
+    private Texture2D _charTex = null!;
 
     /* Core */
-    private Camera2D _camera;
-    private World _world;
-    private TileRegistry _tileRegistry;
-    private Player _player;
+    private readonly TileRegistry _tileRegistry = new();
+    private Camera2D _camera = null!;
+    private World _world = null!;
+    private Player _player = null!;
 
     /* Debug */
     private bool _debug = false;
     private readonly Color _debugColor = new(255, 255, 255, 255/2);
-    private Texture2D _debugTexture;
+    private Texture2D _debugTexture = null!;
     
     /* Test gameplay */
-    private List<string> _placeableTypes = ["GRASS", "STONE", "OAK_LOG"];
+    private readonly List<string> _placeableTypes = ["GRASS", "STONE", "OAK_LOG"];
     private int _currType = 0;
 
     
@@ -43,7 +40,6 @@ public class Game1 : Game
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
-        _tileRegistry = new TileRegistry();
         _graphics.PreferredBackBufferWidth = Settings.NativeWidth * Settings.ResScale;
         _graphics.PreferredBackBufferHeight = Settings.NativeHeight * Settings.ResScale;
     }
@@ -136,6 +132,8 @@ public class Game1 : Game
         var dirtTexture = Content.Load<Texture2D>("Graphics/Pack2/Tiles/Grass");
         var stoneTexture = Content.Load<Texture2D>("Graphics/Pack2/Tiles/Stone");
         var oakLogTexture = Content.Load<Texture2D>("Graphics/Pack2/Tiles/Oak Logs");
+        var emptyTexture = new Texture2D(GraphicsDevice, 1, 1);
+        emptyTexture.SetData([Color.Transparent]);
         
         // TODO: Implement data-driven approach. All types should be XMLs, and loaded by a loader inside tileRegistry.
         var grassTileType = new TileType("GRASS", "Grass", "Just some grass", 100, true);
@@ -146,10 +144,16 @@ public class Game1 : Game
         
         var oakLogType = new TileType("OAK_LOG", "Oak Log", "Just oak log", 200, true);
         oakLogType.AddSpriteVariant(new Sprite2D(oakLogTexture, new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
+        
+        var emptyType = new TileType("EMPTY", "Empty", "Just air", 0, false);
+        emptyType.AddSpriteVariant(new Sprite2D(emptyTexture, new Rectangle(0, 0, Settings.TileSize, Settings.TileSize)));
+        
+        
 
         _tileRegistry.Register(grassTileType.Id, grassTileType);
         _tileRegistry.Register(stoneTileType.Id, stoneTileType);
         _tileRegistry.Register(oakLogType.Id, oakLogType);
+        _tileRegistry.Register(emptyType.Id, emptyType);
     }
 
     /* Draw to Render Target at native resolution */
@@ -167,8 +171,6 @@ public class Game1 : Game
             for (int j = 0; j < _world.GetHeight(); j++)
             {
                 Sprite2D sprite = _world.GetTileSpriteAt(i, j);
-                if (sprite == null)
-                    continue;
                 DrawTile(i, j, sprite);
             }
         }

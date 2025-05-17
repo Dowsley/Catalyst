@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Catalyst.Core;
 using Catalyst.Core.Fsm;
 using Microsoft.Xna.Framework;
@@ -11,8 +10,8 @@ public class EntityStateMachine(Entity owner)
 {
 	public void Input(World worldRef, GameTime gameTime)
 	{
-		var currentState = (EntityBaseState)CurrentState;
-		var newState = currentState.Input();
+		var currentState = CurrentState as EntityBaseState;
+		var newState = currentState?.Input();
 		if (newState != null)
 		{
 			Console.WriteLine($"Changing state to: {newState.GetType().Name}");

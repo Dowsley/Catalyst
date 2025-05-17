@@ -5,7 +5,7 @@ namespace Catalyst.Core.Fsm;
 
 public class BaseStateMachine<T>
 {
-	public BaseState<T> CurrentState;
+	public BaseState<T>? CurrentState;
 	protected T Owner;
 
 	public BaseStateMachine(T owner)
@@ -17,12 +17,12 @@ public class BaseStateMachine<T>
 	{
 		CurrentState?.Exit(worldRef, gameTime);
 		CurrentState = newState;
-		CurrentState.Enter(worldRef, gameTime);
+		CurrentState?.Enter(worldRef, gameTime);
 	}
 
 	public void Update(World worldRef, GameTime gameTime)
 	{
-		var newState = CurrentState.Update(worldRef, gameTime);
+		var newState = CurrentState?.Update(worldRef, gameTime);
 		if (newState != null)
 		{
 			Console.WriteLine($"Changing state to: {newState.GetType().Name}");

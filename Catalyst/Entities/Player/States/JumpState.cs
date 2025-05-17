@@ -1,4 +1,3 @@
-using System;
 using Catalyst.Core;
 using Catalyst.Core.Fsm;
 using Catalyst.Globals;
@@ -17,7 +16,7 @@ public class JumpState(Entity owner) : BaseMoveAirState(owner)
 		Owner.Velocity.Y = -Settings.PlayerJumpForce * TimeUtils.GetDelta(gameTime);
 	}
 
-	public override BaseState<Entity> Update(World worldRef, GameTime gameTime)
+	public override BaseState<Entity>? Update(World worldRef, GameTime gameTime)
 	{
 		var newState = base.Update(worldRef, gameTime);
 		if (newState != null)

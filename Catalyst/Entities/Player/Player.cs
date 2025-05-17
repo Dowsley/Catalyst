@@ -1,10 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
 using Catalyst.Core;
 using Catalyst.Entities.Player.States;
-using Catalyst.Globals;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 
 namespace Catalyst.Entities.Player;
 
