@@ -7,6 +7,7 @@ using Catalyst.Entities;
 using Catalyst.Entities.Player;
 using Catalyst.Globals;
 using Catalyst.Graphics;
+using Catalyst.Tiles;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -15,47 +16,63 @@ namespace Catalyst;
 
 public class Game1 : Game
 {
+    /* Rendering */
     private readonly GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
     private RenderTarget2D _renderTarget;
-
     private Texture2D _charTex;
-    private Texture2D _dirtTexAtlas;
-    private readonly Rectangle _dirtCommonRect = new(0, 1, 8, 8);
 
+    /* Core */
     private Camera2D _camera;
     private World _world;
+    private TileRegistry _tileRegistry;
     private Player _player;
 
+    /* Debug */
     private bool _debug = false;
+    private readonly Color _debugColor = new(255, 255, 255, 255/2);
+    private Texture2D _debugTexture;
+    
+    /* Test gameplay */
+    private List<string> _placeableTypes = ["GRASS", "STONE", "OAK_LOG"];
+    private int _currType = 0;
 
+    
     public Game1()
     {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
-
+        _tileRegistry = new TileRegistry();
         _graphics.PreferredBackBufferWidth = Settings.NativeWidth * Settings.ResScale;
         _graphics.PreferredBackBufferHeight = Settings.NativeHeight * Settings.ResScale;
-        
-        _world = new World(Settings.NativeWidth / Settings.TileSize, Settings.NativeHeight / Settings.TileSize, _debug);
-        _world.GenerateTerrain();
     }
 
     protected override void Initialize()
     {
         base.Initialize();
-
-        InitializePlayer();
-        _world.SetPlayer(_player);
         _renderTarget = new RenderTarget2D(GraphicsDevice, Settings.NativeWidth, Settings.NativeHeight);
     }
 
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
-        _dirtTexAtlas = Content.Load<Texture2D>("Graphics/Pack2/Tiles/Grass");
+        _debugTexture = new Texture2D(GraphicsDevice, 1, 1);
+        _debugTexture.SetData([Color.White]);
         _charTex = Content.Load<Texture2D>("Graphics/sample_char");
+
+        InitializeTileTypes();
+        
+        _world = new World(
+            Settings.NativeWidth / Settings.TileSize, 
+            Settings.NativeHeight / Settings.TileSize,
+            _tileRegistry,
+            _debug
+        );
+        _world.GenerateTerrain();
+        
+        InitializePlayer();
+        _world.SetPlayer(_player);
     }
 
     protected override void Update(GameTime gameTime)
@@ -65,6 +82,12 @@ public class Game1 : Game
         
         if (kState.IsKeyDown(Keys.Escape))
             Exit();
+        if (kState.IsKeyDown(Keys.Tab))
+        {
+            _currType += 1;
+            if (_currType >= _placeableTypes.Count)
+                _currType = 0;
+        }
 
         var lmbPressed = mState.LeftButton == ButtonState.Pressed;
         var rmbPressed = mState.RightButton == ButtonState.Pressed;
@@ -73,7 +96,7 @@ public class Game1 : Game
             var mousePos = new Vector2(mState.X, mState.Y);
             var worldPos = mousePos / Settings.ResScale + _camera.Position;
             var gridPos = _world.WorldToGrid(worldPos);
-            _world.SetTileAt(gridPos.X, gridPos.Y, lmbPressed);
+            _world.SetTileAt(gridPos.X, gridPos.Y, lmbPressed ? _tileRegistry.Get(_placeableTypes[_currType]) : _tileRegistry.Get("EMPTY"));
         }
 
         _world.Update(gameTime, kState);
@@ -90,12 +113,43 @@ public class Game1 : Game
         base.Draw(gameTime);
     }
 
+    private void DrawTile(int x, int y, Sprite2D sprite)
+    {
+        _spriteBatch.Draw(
+            sprite.Texture,
+            new Vector2(x, y) * Settings.TileSize,
+            sprite.SourceRect,
+            Color.White
+        );
+    }
+
     private void InitializePlayer()
     {
         var spawningPos = _world.GetSpawningPosForPlayer();
         spawningPos.Y -= 5 * Settings.TileSize; //offset in blocks
         _player = new Player(spawningPos, new Vector2(_charTex.Width, _charTex.Height));
         _camera = new Camera2D(_player.Position);
+    }
+
+    private void InitializeTileTypes()
+    {
+        var dirtTexture = Content.Load<Texture2D>("Graphics/Pack2/Tiles/Grass");
+        var stoneTexture = Content.Load<Texture2D>("Graphics/Pack2/Tiles/Stone");
+        var oakLogTexture = Content.Load<Texture2D>("Graphics/Pack2/Tiles/Oak Logs");
+        
+        // TODO: Implement data-driven approach. All types should be XMLs, and loaded by a loader inside tileRegistry.
+        var grassTileType = new TileType("GRASS", "Grass", "Just some grass", 100, true);
+        grassTileType.AddSpriteVariant(new Sprite2D(dirtTexture, new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
+        
+        var stoneTileType = new TileType("STONE", "Stone", "Just stone", 500, true);
+        stoneTileType.AddSpriteVariant(new Sprite2D(stoneTexture, new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
+        
+        var oakLogType = new TileType("OAK_LOG", "Oak Log", "Just oak log", 200, true);
+        oakLogType.AddSpriteVariant(new Sprite2D(oakLogTexture, new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
+
+        _tileRegistry.Register(grassTileType.Id, grassTileType);
+        _tileRegistry.Register(stoneTileType.Id, stoneTileType);
+        _tileRegistry.Register(oakLogType.Id, oakLogType);
     }
 
     /* Draw to Render Target at native resolution */
@@ -112,10 +166,10 @@ public class Game1 : Game
         {
             for (int j = 0; j < _world.GetHeight(); j++)
             {
-                if (!_world.GetTileAt(i, j) )
+                Sprite2D sprite = _world.GetTileSpriteAt(i, j);
+                if (sprite == null)
                     continue;
-                var worldPos = new Vector2(i, j) * Settings.TileSize;
-                _spriteBatch.Draw(_dirtTexAtlas, worldPos, _dirtCommonRect, Color.White);
+                DrawTile(i, j, sprite);
             }
         }
 
@@ -129,12 +183,9 @@ public class Game1 : Game
         
         if (_debug)
         {
-            var debugColor = new Color(255, 255, 255, 255/2);
-            var debugTexture = new Texture2D(GraphicsDevice, 1, 1);
-            debugTexture.SetData([Color.White]);
-            _spriteBatch.Draw(debugTexture, new Rectangle(
+            _spriteBatch.Draw(_debugTexture, new Rectangle(
                 (int)_player.CollisionShape.Position.X, (int)_player.CollisionShape.Position.Y, (int)_player.CollisionShape.Size.X, (int)_player.CollisionShape.Size.Y)
-            , debugColor);
+            , _debugColor);
         }
         _spriteBatch.End();
     }
@@ -155,7 +206,7 @@ public class Game1 : Game
     {
         foreach (var worldPos in _world.DebugCollidedTiles.Select(tilePos => new Vector2(tilePos.X, tilePos.Y) * Settings.TileSize))
         {
-            _spriteBatch.Draw(_dirtTexAtlas, worldPos, _dirtCommonRect, Color.Blue);
+            _spriteBatch.Draw(_debugTexture, worldPos, new Rectangle(0, 1, 8, 8), Color.Blue);
         }
     }
     
@@ -163,7 +214,8 @@ public class Game1 : Game
     {
         foreach (var worldPos in _world.DebugCheckedTiles.Select(tilePos => new Vector2(tilePos.X, tilePos.Y) * Settings.TileSize))
         {
-            _spriteBatch.Draw(_dirtTexAtlas, worldPos, _dirtCommonRect, Color.Yellow);
+            
+            _spriteBatch.Draw(_debugTexture, worldPos, new Rectangle(0, 1, 8, 8), Color.Yellow);
         }
     }
 }

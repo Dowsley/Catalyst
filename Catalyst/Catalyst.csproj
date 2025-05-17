@@ -30,7 +30,6 @@
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Content\Graphics\Pack2\" />
-      <Folder Include="Tiles\" />
     </ItemGroup>
     <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
         <Message Text="Restoring dotnet tools" Importance="High"/>

@@ -5,7 +5,9 @@ using System.Linq;
 using Catalyst.Entities;
 using Catalyst.Entities.Player;
 using Catalyst.Globals;
+using Catalyst.Graphics;
 using Catalyst.Systems;
+using Catalyst.Tiles;
 using Catalyst.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -15,6 +17,7 @@ namespace Catalyst.Core;
 public class World
 {
     public CollisionSystem CollisionSystem;
+    public TileRegistry TileRegistry;
     
     public readonly Queue<Point> DebugCollidedTiles = [];
     public readonly Queue<Point> DebugCheckedTiles = [];
@@ -23,24 +26,24 @@ public class World
     
     private const int SpawnAreaSize = 5;
     
-    private readonly bool[,] _tiles;
     private readonly Point _worldSize;
-    private readonly FastNoiseLite _noise;
+    private readonly Tile[,] _tiles;
+    private readonly FastNoiseLite _noise = new();
+    private Random _random;
     
     private Player _playerRef;
     private readonly List<Entity> _npcs = [];
 
     private bool _debug;
 
-    public World(int sizeX, int sizeY, bool debug=false)
+    public World(int sizeX, int sizeY, TileRegistry tileRegistry, bool debug=false)
     {
         _debug = debug;
-        
-        _tiles = new bool[sizeX, sizeY];
+        _tiles = new Tile[sizeX, sizeY];
         _worldSize = new Point(sizeX, sizeY);
-        _noise = new FastNoiseLite();
         CollisionSystem = new CollisionSystem(this, _debug);
-        SetupNoise();
+        TileRegistry = tileRegistry;
+        SetupRandom();
     }
     
     public void Update(GameTime gameTime, KeyboardState kState)
@@ -64,14 +67,16 @@ public class World
     
     public void GenerateTerrain()
     {
+        // TODO: Implement world generation.
         for (int x = 0; x < _worldSize.X; x++)
         {
             float noiseValue = _noise.GetNoise(x, 0);
             int surfaceY = (int)(_worldSize.Y / 2 + noiseValue * Settings.WorldGenNoiseAmplitude);
-
             for (int y = 0; y < _worldSize.Y; y++)
             {
-                _tiles[x, y] = y > surfaceY;
+                var type = y > surfaceY ? TileRegistry.Get("GRASS") : TileRegistry.Get("EMPTY");
+                var tile = new Tile(type, type.GetRandomSpriteIndex(_random));
+                _tiles[x, y] = tile;
             }
         }
     }
@@ -81,9 +86,14 @@ public class World
         _playerRef = playerRef;
     }
 
-    public bool GetTileAt(int x, int y)
+    public TileType GetTileTypeAt(int x, int y)
     {
-        return _tiles[x, y];
+        return _tiles[x, y].Type;
+    }
+    
+    public Sprite2D GetTileSpriteAt(int x, int y)
+    {
+        return _tiles[x, y].Sprite;
     }
     
     public bool IsWithinBounds(int x, int y)
@@ -93,7 +103,7 @@ public class World
     
     public bool IsPositionSolid(int x, int y)
     {
-        return !IsWithinBounds(x, y) || GetTileAt(x, y) == true;
+        return !IsWithinBounds(x, y) || GetTileTypeAt(x, y).IsSolid;
     }
     
     public int GetWidth()
@@ -114,8 +124,8 @@ public class World
             // Find first empty block to stand on
             for (int y = GetHeight() - 1; y >= 0; y--)
             {
-                var tile = GetTileAt(x, y);
-                if (tile == false)
+                var tile = GetTileTypeAt(x, y);
+                if (tile.Id == "EMPTY")
                 {
                     return new Vector2(x, y) * Settings.TileSize;
                 }
@@ -125,13 +135,14 @@ public class World
         return Vector2.Zero;
     }
 
-    private void SetupNoise()
+    private void SetupRandom()
     {
         _noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
         _noise.SetFrequency(0.05f);
         
-        var random = new Random();
-        _noise.SetSeed(random.Next());
+        var seed = new Random().Next();
+        _noise.SetSeed(seed);
+        _random = new Random(seed);
     }
 
     public Point WorldToGrid(Vector2 worldPos)
@@ -151,11 +162,11 @@ public class World
         );
     }
 
-    public void SetTileAt(int x, int y, bool isSolid)
+    public void SetTileAt(int x, int y, TileType type)
     {
         if (IsWithinBounds(x, y))
         {
-            _tiles[x, y] = isSolid;
+            _tiles[x, y] = new Tile(type, type.GetRandomSpriteIndex(_random));
         }
     }
 }

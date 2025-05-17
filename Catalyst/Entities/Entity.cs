@@ -14,17 +14,14 @@ public class Entity
     public Vector2 Position;
     public Vector2 Velocity;
     public float SpeedFactor { get; set; }
-    public CollisionShape CollisionShape => new(Position, ColliderSize);
-    public readonly bool IsAffectedByGravity;
-
     public readonly float Acceleration = 1f;
+    public CollisionShape CollisionShape => new(Position, ColliderSize);
 
-    public Entity(Vector2 pos, Vector2 colliderSize, float speedFactor=1.0f, bool isAffectedByGravity=true)
+    public Entity(Vector2 pos, Vector2 colliderSize, float speedFactor=1.0f)
     {
         Position = pos;
         SpeedFactor = speedFactor;
         ColliderSize = colliderSize;
-        IsAffectedByGravity = isAffectedByGravity;
         States = new EntityStateMachine(this);
     }
 
