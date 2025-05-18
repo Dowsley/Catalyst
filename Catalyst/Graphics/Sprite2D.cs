@@ -1,8 +1,6 @@
-namespace Catalyst.Graphics;
-
-
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+
+namespace Catalyst.Graphics;
 
 public class Sprite2D(string textureId, Rectangle sourceRect)
 {

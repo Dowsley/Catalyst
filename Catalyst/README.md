@@ -11,12 +11,16 @@
 - [X] Decouple game world logic from LoadContent()
   - ~~Use a main Spritesheet and make sprites only point to them~~
   - Or alternatively load all sprites - and keep them in a dictionary where Sprites look them up
+- [ ] Good resolution and automatic scaling
+  - Reverse engineer how many tiles fit in the Terraria's screen
 - [ ] Chunking (ongoing)
 - [ ] World Generation System
 - [ ] Tiles from XML (data-driven approach)
 - [ ] Autotiling/Atlas
-- [ ] Tile State (Manager) 
+- [ ] Lighting
 - [ ] Entity System
 - [ ] Input Handling System
   - IsJustPressed, Pressed, queueing/polling, etc
 - [ ] Player Interaction with the world
+- [ ] Tile State (Manager) 
+- [ ] UI

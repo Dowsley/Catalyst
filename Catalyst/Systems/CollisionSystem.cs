@@ -121,7 +121,7 @@ public class CollisionSystem(World worldRef, bool debug=false)
         var topLeftWorld = colShapeFinalVertical.TopLeft;
         var topRightWorld = colShapeFinalVertical.TopRight;
         var bottomLeftWorld = colShapeFinalVertical.BottomLeft;
-        var bottomRightWorld = colShapeFinalVertical.BottomRight;
+        // var bottomRightWorld = colShapeFinalVertical.BottomRight;
         
         var topLeftGrid = worldRef.WorldToGrid(topLeftWorld);
         var topRightGrid = worldRef.WorldToGrid(topRightWorld);

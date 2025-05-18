@@ -4,9 +4,9 @@ public static class Settings
 {
     // Graphics
     public const int TileSize = 8;
-    public const int ResScale = 3;
-    public const int NativeWidth = 320*2;
-    public const int NativeHeight = 180*2;
+    public const int ResScale = 2;
+    public const int NativeWidth = 1280/2;//*2;
+    public const int NativeHeight = 720/2;//*2;
     
     // Physics constants
     public const float BaseRealPlayerSpeed = 60.0f;
