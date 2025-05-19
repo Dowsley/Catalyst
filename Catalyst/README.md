@@ -13,10 +13,10 @@
   - Or alternatively load all sprites - and keep them in a dictionary where Sprites look them up
 - [X] Good resolution and automatic scaling
   - Reverse engineer how many tiles fit in the Terraria's screen
-- [ ] Basic Input Handling System (Keyboard)
+- [X] Basic Input Handling System (Keyboard)
   - [X] Core, Keyboard
-  - [ ] Mouse
-- [ ] Chunking
+  - [X] Mouse
+- [ ] Chunking (ongoing)
 - [ ] World Generation System
 - [ ] Tiles from XML (data-driven approach)
 - [ ] Autotiling/Atlas

@@ -93,19 +93,18 @@ public class Game1 : Game
                 _currType = 0;
         }
 
-        _world.Update(gameTime); 
+        _world.Update(gameTime);
         _camera.Position = _player.Position + new Vector2(_charTex.Width / 2f, _charTex.Height / 2f);
 
-        var mState = Mouse.GetState();
-        var mouseScreenPos = new Vector2(mState.X, mState.Y);
+        var mouseScreenPos = InputSystem.GetMousePosition();
 
         Matrix worldViewTransformMatrix =
             Matrix.CreateTranslation(-_camera.Position.X, -_camera.Position.Y, 0) * // Center on camera's focus (player's center)
             Matrix.CreateScale(Settings.ResScale, Settings.ResScale, 1.0f) *          // Apply zoom
             Matrix.CreateTranslation(Settings.NativeWidth / 2f, Settings.NativeHeight / 2f, 0); // Translate to screen center
 
-        var lmbPressed = mState.LeftButton == ButtonState.Pressed;
-        var rmbPressed = mState.RightButton == ButtonState.Pressed;
+        var lmbPressed = InputSystem.IsMouseButtonPressed(InputSystem.MouseButton.Left);
+        var rmbPressed = InputSystem.IsMouseButtonPressed(InputSystem.MouseButton.Right);
         if (lmbPressed || rmbPressed)
         {
             var worldPos = Vector2.Transform(mouseScreenPos, Matrix.Invert(worldViewTransformMatrix));
