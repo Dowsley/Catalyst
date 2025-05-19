@@ -2,6 +2,7 @@ using Catalyst.Core;
 using Catalyst.Core.Fsm;
 using Catalyst.Entities.Fsm;
 using Catalyst.Globals;
+using Catalyst.Systems;
 using Catalyst.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -13,14 +14,13 @@ public class BaseMoveAirState(Entity owner) : EntityBaseState(owner)
 	public override BaseState<Entity>? Update(World worldRef, GameTime gameTime)
 	{
 		var motion = 0;
-		var kState = Keyboard.GetState();
-		if (kState.IsKeyDown(Keys.A))
+		if (InputSystem.IsActionPressed("left"))
 		{
 			motion = -1;
 			// TODO: Owner.SetSpriteDir(Owner.SpriteDirs.Left);
 		}
 
-		if (kState.IsKeyDown(Keys.D))
+		if (InputSystem.IsActionPressed("right"))
 		{
 			motion = 1;
 			// TODO: Owner.SetSpriteDir(Owner.SpriteDirs.Right);

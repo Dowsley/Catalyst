@@ -13,14 +13,17 @@
   - Or alternatively load all sprites - and keep them in a dictionary where Sprites look them up
 - [X] Good resolution and automatic scaling
   - Reverse engineer how many tiles fit in the Terraria's screen
-- [ ] Chunking (ongoing)
+- [ ] Basic Input Handling System (Keyboard)
+  - [X] Core, Keyboard
+  - [ ] Mouse
+- [ ] Chunking
 - [ ] World Generation System
 - [ ] Tiles from XML (data-driven approach)
 - [ ] Autotiling/Atlas
 - [ ] Lighting
 - [ ] Entity System
-- [ ] Input Handling System
-  - IsJustPressed, Pressed, queueing/polling, etc
 - [ ] Player Interaction with the world
+  - [ ] Actions (no need to generalize for Entity right now)
 - [ ] Tile State (Manager) 
 - [ ] UI
+- [ ] Make Input Action registering data-driven (like in godot)

@@ -2,6 +2,7 @@ using Catalyst.Core;
 using Catalyst.Core.Fsm;
 using Catalyst.Entities.Fsm;
 using Catalyst.Globals;
+using Catalyst.Systems;
 using Catalyst.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -13,8 +14,7 @@ public class BaseMoveState(Entity owner) : EntityBaseState(owner)
 	
 	public override EntityBaseState? Input()
 	{
-		var kState = Keyboard.GetState();
-		if (kState.IsKeyDown(Keys.Space))
+		if (InputSystem.IsActionPressed("jump"))
 			return new JumpState(Owner);
 		
 		return null;
@@ -50,10 +50,9 @@ public class BaseMoveState(Entity owner) : EntityBaseState(owner)
 
 	protected static int GetMovementInput()
 	{
-		var kState = Keyboard.GetState();
-		if (kState.IsKeyDown(Keys.A))
+		if (InputSystem.IsActionPressed("left"))
 			return -1;
-		return kState.IsKeyDown(Keys.D) ? 1 : 0;
+		return InputSystem.IsActionPressed("right") ? 1 : 0;
 	}
 }
 

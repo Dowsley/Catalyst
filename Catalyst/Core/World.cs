@@ -14,8 +14,8 @@ namespace Catalyst.Core;
 
 public class World
 {
-    public CollisionSystem CollisionSystem;
-    public TileRegistry TileRegistry;
+    public readonly CollisionSystem CollisionSystem;
+    public readonly TileRegistry TileRegistry;
     
     public readonly Queue<Point> DebugCollidedTiles = [];
     public readonly Queue<Point> DebugCheckedTiles = [];
@@ -44,7 +44,7 @@ public class World
         SetupRandom();
     }
     
-    public void Update(GameTime gameTime, KeyboardState kState)
+    public void Update(GameTime gameTime)
     {
         DebugTimer += TimeUtils.GetDelta(gameTime);
         if (DebugTimer >= DebugVanishTimeSecs)
@@ -53,10 +53,10 @@ public class World
             DebugCheckedTiles.Clear();
             DebugTimer = 0f;
         }
-        UpdateAllEntities(gameTime, kState);
+        UpdateAllEntities(gameTime);
     }
 
-    public void UpdateAllEntities(GameTime gameTime, KeyboardState kState)
+    public void UpdateAllEntities(GameTime gameTime)
     {
         _playerRef.Update(this, gameTime);
         foreach (var npc in _npcs)
@@ -143,21 +143,48 @@ public class World
         _random = new Random(seed);
     }
 
-    public Point WorldToGrid(Vector2 worldPos)
+    /// <summary>
+    /// Returns that world vector converted to grid space (in tiles)
+    /// </summary>
+    public static Point WorldToGrid(Vector2 vec)
     {
         return new Point(
-            (int)(worldPos.X / Settings.TileSize),
-            (int)(worldPos.Y / Settings.TileSize)
+            WorldToGrid(vec.X),
+            WorldToGrid(vec.Y)
         );
     }
     
-    /* Returns the world position on the top-left most point of the grid coordinate */
-    public Vector2 GridToWorld(Point gridPos)
+    /// <summary>
+    /// Returns that world scalar converted to grid space (in tiles)
+    /// </summary>
+    public static int WorldToGrid(float value)
+    {
+        return (int)(value / Settings.TileSize);
+    }
+    
+    /// <summary>
+    /// Returns that grid vector converted to world space (in pixels)
+    /// </summary>
+    /// <remarks>
+    /// The origin of a grid coordinate is on its top-left.
+    /// </remarks>
+    public static Vector2 GridToWorld(Point vec)
     {
         return new Vector2(
-            gridPos.X * Settings.TileSize,
-            gridPos.Y * Settings.TileSize
+            GridToWorld(vec.X),
+            GridToWorld(vec.Y)
         );
+    }
+
+    /// <summary>
+    /// Returns that grid scalar converted to world space (in pixels)
+    /// </summary>
+    /// <remarks>
+    /// The origin of a grid coordinate is on its top-left.
+    /// </remarks>
+    public static float GridToWorld(int val)
+    {
+        return val * Settings.TileSize;
     }
 
     public void SetTileAt(int x, int y, TileType type)

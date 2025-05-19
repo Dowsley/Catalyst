@@ -45,8 +45,8 @@ public class CollisionSystem(World worldRef, bool debug=false)
         float entityLeftX = entity.CollisionShape.Left;
         float entityRightX = entity.CollisionShape.Right;
 
-        Point startGrid = worldRef.WorldToGrid(new Vector2(entityLeftX, checkY));
-        Point endGrid = worldRef.WorldToGrid(new Vector2(entityRightX, checkY));
+        Point startGrid = World.WorldToGrid(new Vector2(entityLeftX, checkY));
+        Point endGrid = World.WorldToGrid(new Vector2(entityRightX, checkY));
 
         int gridCheckY = startGrid.Y; 
 
@@ -123,9 +123,9 @@ public class CollisionSystem(World worldRef, bool debug=false)
         var bottomLeftWorld = colShapeFinalVertical.BottomLeft;
         // var bottomRightWorld = colShapeFinalVertical.BottomRight;
         
-        var topLeftGrid = worldRef.WorldToGrid(topLeftWorld);
-        var topRightGrid = worldRef.WorldToGrid(topRightWorld);
-        var bottomLeftGrid = worldRef.WorldToGrid(bottomLeftWorld);
+        var topLeftGrid = World.WorldToGrid(topLeftWorld);
+        var topRightGrid = World.WorldToGrid(topRightWorld);
+        var bottomLeftGrid = World.WorldToGrid(bottomLeftWorld);
         // var bottomRightGrid = worldRef.WorldToGrid(bottomRightWorld);
         
         // Check vertical movement
@@ -161,7 +161,7 @@ public class CollisionSystem(World worldRef, bool debug=false)
         if (moveY > 0) // moving down - should snap to top of topmost block
         {
             var topMost = verticalTiles.OrderBy(p => p.Y).First();
-            var worldOriginOfTopMostTile = worldRef.GridToWorld(topMost);
+            var worldOriginOfTopMostTile = World.GridToWorld(topMost);
             float penetration = colShapeFinalVertical.Bottom - worldOriginOfTopMostTile.Y;
             float allowedMove = moveY - Math.Max(0, penetration); 
             return Math.Max(0, allowedMove - CollisionResolutionEpsilon);
@@ -169,7 +169,7 @@ public class CollisionSystem(World worldRef, bool debug=false)
         else // moving up - should snap to bottom of bottommost block
         {
             var bottomMost = verticalTiles.OrderByDescending(p => p.Y).First();
-            var worldOriginOfBottomMostTile = worldRef.GridToWorld(bottomMost);
+            var worldOriginOfBottomMostTile = World.GridToWorld(bottomMost);
             var bottomOfTile = worldOriginOfBottomMostTile.Y + Settings.TileSize;
             float penetration = bottomOfTile - colShapeFinalVertical.Top;
             float allowedMove = moveY + Math.Max(0, penetration); 
@@ -201,15 +201,15 @@ public class CollisionSystem(World worldRef, bool debug=false)
         }
 
         // Convert the X-extents of the tempShape to grid coordinates.
-        var tempShapeTopLeftGrid = worldRef.WorldToGrid(tempShape.TopLeft);
-        var tempShapeTopRightGrid = worldRef.WorldToGrid(tempShape.TopRight);
+        var tempShapeTopLeftGrid = World.WorldToGrid(tempShape.TopLeft);
+        var tempShapeTopRightGrid = World.WorldToGrid(tempShape.TopRight);
         int xLoopStartGrid = tempShapeTopLeftGrid.X;
         int xLoopEndGrid = tempShapeTopRightGrid.X;
 
         // Convert the world Y scan range to grid Y scan range for the loop.
         // Use any valid X within the shape for this conversion (e.g., tempShape.Left).
-        int yLoopStartGrid = worldRef.WorldToGrid(new Vector2(tempShape.Left, scanTopWorldY)).Y;
-        int yLoopEndGrid = worldRef.WorldToGrid(new Vector2(tempShape.Left, scanBottomWorldY)).Y;
+        int yLoopStartGrid = World.WorldToGrid(new Vector2(tempShape.Left, scanTopWorldY)).Y;
+        int yLoopEndGrid = World.WorldToGrid(new Vector2(tempShape.Left, scanBottomWorldY)).Y;
 
         // Ensure yLoopEndGrid is not less than yLoopStartGrid after conversion,
         // which could happen with very small scan ranges or specific WorldToGrid behaviors.
@@ -245,7 +245,7 @@ public class CollisionSystem(World worldRef, bool debug=false)
         if (moveX > 0) // moving right - should snap to left of leftmost block
         {
             var leftMost = horizontalTiles.OrderBy(p => p.X).First();
-            var worldOriginOfLeftMostTile = worldRef.GridToWorld(leftMost);
+            var worldOriginOfLeftMostTile = World.GridToWorld(leftMost);
             float penetration = tempShape.Right - worldOriginOfLeftMostTile.X;
             float allowedMove = moveX - Math.Max(0, penetration);
             return Math.Max(0, allowedMove - CollisionResolutionEpsilon);
@@ -253,7 +253,7 @@ public class CollisionSystem(World worldRef, bool debug=false)
         else // moving left - should snap to right of rightmost block
         {
             var rightMost = horizontalTiles.OrderByDescending(p => p.X).First();
-            var worldOriginOfRightMostTile = worldRef.GridToWorld(rightMost);
+            var worldOriginOfRightMostTile = World.GridToWorld(rightMost);
             var rightOfTile = worldOriginOfRightMostTile.X + Settings.TileSize;
             float penetration = rightOfTile - tempShape.Left;
             float allowedMove = moveX + Math.Max(0, penetration);

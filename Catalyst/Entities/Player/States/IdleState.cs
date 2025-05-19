@@ -2,6 +2,7 @@ using Catalyst.Core;
 using Catalyst.Core.Fsm;
 using Catalyst.Entities.Fsm;
 using Catalyst.Globals;
+using Catalyst.Systems;
 using Catalyst.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -12,10 +13,9 @@ public class IdleState(Entity owner) : EntityBaseState(owner)
 {
 	public override EntityBaseState? Input()
 	{
-		var kState = Keyboard.GetState();
-		if (kState.IsKeyDown(Keys.A) || kState.IsKeyDown(Keys.D))
+		if (InputSystem.IsActionPressed("left") || InputSystem.IsActionPressed("right"))
 			return new WalkState(Owner);
-		if (kState.IsKeyDown(Keys.Space))
+		if (InputSystem.IsActionPressed("jump"))
 			return new JumpState(Owner);
 		
 		return null;

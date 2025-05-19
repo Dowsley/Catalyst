@@ -6,6 +6,7 @@ using Catalyst.Core;
 using Catalyst.Entities.Player;
 using Catalyst.Globals;
 using Catalyst.Graphics;
+using Catalyst.Systems;
 using Catalyst.Tiles;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -38,7 +39,6 @@ public class Game1 : Game
     /* Test gameplay */
     private readonly List<string> _placeableTypes = ["GRASS", "STONE", "OAK_LOG"];
     private int _currType = 0;
-    private bool _canPressAgain = true;
     
     public Game1()
     {
@@ -47,6 +47,8 @@ public class Game1 : Game
         IsMouseVisible = true;
         _graphics.PreferredBackBufferWidth = Settings.NativeWidth;
         _graphics.PreferredBackBufferHeight = Settings.NativeHeight;
+        
+        RegisterActions();
     }
 
     protected override void Initialize()
@@ -79,23 +81,19 @@ public class Game1 : Game
 
     protected override void Update(GameTime gameTime)
     {
-        var kState = Keyboard.GetState();
-        if (kState.IsKeyDown(Keys.Escape))
-        {
-            Exit();
-        }
+        InputSystem.Update();
 
-        if (kState.IsKeyDown(Keys.Tab) && _canPressAgain)
+        if (InputSystem.IsActionPressed("exit"))
+            Exit();
+
+        if (InputSystem.IsActionJustPressed("next_tile"))
         {
-            _canPressAgain = false;
             _currType += 1;
             if (_currType >= _placeableTypes.Count)
                 _currType = 0;
         }
-        if (kState.IsKeyUp(Keys.Tab))
-            _canPressAgain = true;
 
-        _world.Update(gameTime, kState); 
+        _world.Update(gameTime); 
         _camera.Position = _player.Position + new Vector2(_charTex.Width / 2f, _charTex.Height / 2f);
 
         var mState = Mouse.GetState();
@@ -103,7 +101,7 @@ public class Game1 : Game
 
         Matrix worldViewTransformMatrix =
             Matrix.CreateTranslation(-_camera.Position.X, -_camera.Position.Y, 0) * // Center on camera's focus (player's center)
-            Matrix.CreateScale(Settings.ResScale, Settings.ResScale, 1.0f) *         // Apply zoom
+            Matrix.CreateScale(Settings.ResScale, Settings.ResScale, 1.0f) *          // Apply zoom
             Matrix.CreateTranslation(Settings.NativeWidth / 2f, Settings.NativeHeight / 2f, 0); // Translate to screen center
 
         var lmbPressed = mState.LeftButton == ButtonState.Pressed;
@@ -111,7 +109,7 @@ public class Game1 : Game
         if (lmbPressed || rmbPressed)
         {
             var worldPos = Vector2.Transform(mouseScreenPos, Matrix.Invert(worldViewTransformMatrix));
-            var gridPos = _world.WorldToGrid(worldPos);
+            var gridPos = World.WorldToGrid(worldPos);
             _world.SetTileAt(gridPos.X, gridPos.Y, lmbPressed ? _tileRegistry.Get(_placeableTypes[_currType]) : _tileRegistry.Get("EMPTY"));
         }
         
@@ -136,6 +134,15 @@ public class Game1 : Game
             sprite.SourceRect,
             Color.White
         );
+    }
+
+    private void RegisterActions()
+    {
+        InputSystem.CreateAction("exit", [Keys.Escape]);
+        InputSystem.CreateAction("left", [Keys.A]);
+        InputSystem.CreateAction("right", [Keys.D]);
+        InputSystem.CreateAction("jump", [Keys.Space]);
+        InputSystem.CreateAction("next_tile", [Keys.Tab]);
     }
 
     private Texture2D LookupTexture(string texId)
