@@ -45,8 +45,8 @@ public class Game1 : Game
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
-        _graphics.PreferredBackBufferWidth = Settings.NativeWidth * Settings.ResScale;
-        _graphics.PreferredBackBufferHeight = Settings.NativeHeight * Settings.ResScale;
+        _graphics.PreferredBackBufferWidth = Settings.NativeWidth;
+        _graphics.PreferredBackBufferHeight = Settings.NativeHeight;
     }
 
     protected override void Initialize()
@@ -80,8 +80,6 @@ public class Game1 : Game
     protected override void Update(GameTime gameTime)
     {
         var kState = Keyboard.GetState();
-        var mState = Mouse.GetState();
-
         if (kState.IsKeyDown(Keys.Escape))
         {
             Exit();
@@ -97,18 +95,25 @@ public class Game1 : Game
         if (kState.IsKeyUp(Keys.Tab))
             _canPressAgain = true;
 
+        _world.Update(gameTime, kState); 
+        _camera.Position = _player.Position + new Vector2(_charTex.Width / 2f, _charTex.Height / 2f);
+
+        var mState = Mouse.GetState();
+        var mouseScreenPos = new Vector2(mState.X, mState.Y);
+
+        Matrix worldViewTransformMatrix =
+            Matrix.CreateTranslation(-_camera.Position.X, -_camera.Position.Y, 0) * // Center on camera's focus (player's center)
+            Matrix.CreateScale(Settings.ResScale, Settings.ResScale, 1.0f) *         // Apply zoom
+            Matrix.CreateTranslation(Settings.NativeWidth / 2f, Settings.NativeHeight / 2f, 0); // Translate to screen center
+
         var lmbPressed = mState.LeftButton == ButtonState.Pressed;
         var rmbPressed = mState.RightButton == ButtonState.Pressed;
         if (lmbPressed || rmbPressed)
         {
-            var mousePos = new Vector2(mState.X, mState.Y);
-            var worldPos = mousePos / Settings.ResScale + _camera.Position;
+            var worldPos = Vector2.Transform(mouseScreenPos, Matrix.Invert(worldViewTransformMatrix));
             var gridPos = _world.WorldToGrid(worldPos);
             _world.SetTileAt(gridPos.X, gridPos.Y, lmbPressed ? _tileRegistry.Get(_placeableTypes[_currType]) : _tileRegistry.Get("EMPTY"));
         }
-
-        _world.Update(gameTime, kState);
-        _camera.Position = _player.Position - new Vector2(Settings.NativeWidth, Settings.NativeHeight) / 2f;
         
         base.Update(gameTime);
     }
@@ -117,6 +122,7 @@ public class Game1 : Game
     {
         MainRender();
         ScaleResolution();
+        DrawUI();
 
         base.Draw(gameTime);
     }
@@ -201,10 +207,16 @@ public class Game1 : Game
     {
         GraphicsDevice.SetRenderTarget(_renderTarget);
         GraphicsDevice.Clear(Color.CornflowerBlue);
+
+        var transformMatrixForRender =
+            Matrix.CreateTranslation(-_camera.Position.X, -_camera.Position.Y, 0) * // Center view on camera's focus point
+            Matrix.CreateScale(Settings.ResScale, Settings.ResScale, 1.0f) *          // Apply zoom
+            Matrix.CreateTranslation(Settings.NativeWidth / 2f, Settings.NativeHeight / 2f, 0); // Translate to screen center
+        
         _worldSpriteBatch.Begin(
             samplerState: SamplerState.PointClamp,   // No filtering, pixel art. Prevents blending at edges.
             blendState: BlendState.NonPremultiplied, // Allows transparent pixels to be drawn
-            transformMatrix: _camera.GetViewMatrix()
+            transformMatrix: transformMatrixForRender
         );
         
         DrawTiles();
@@ -217,8 +229,6 @@ public class Game1 : Game
         
         _worldSpriteBatch.Draw(_charTex, _player.Position, Color.White);
         _worldSpriteBatch.End();
-        
-        DrawUI();
     }
 
     private void DrawTiles()
@@ -260,8 +270,10 @@ public class Game1 : Game
         GraphicsDevice.Clear(Color.Black);
         _worldSpriteBatch.Begin(samplerState: SamplerState.PointClamp);
         _worldSpriteBatch.Draw(
-            _renderTarget, destinationRectangle: new Rectangle(
-                0, 0, Settings.NativeWidth * Settings.ResScale, Settings.NativeHeight * Settings.ResScale), Color.White);
+            _renderTarget, 
+            destinationRectangle: new Rectangle(0, 0, Settings.NativeWidth, Settings.NativeHeight),
+            Color.White
+        );
         _worldSpriteBatch.End();
     }
     
