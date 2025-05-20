@@ -16,7 +16,7 @@ public class PatchesPass : Pass
     {
         _tileTypeId = tileTypeId;
         _placementThreshold = placementThreshold;
-        
+
         Noise = noise;
         noise.SetSeed(seed);
 
@@ -33,7 +33,8 @@ public class PatchesPass : Pass
 
     protected override Tile? GetTileTransformation(int x, int y, float maskValue)
     {
-        if (World.GetTileTypeAt(x, y).Id != "DIRT")
+        var id = World.GetTileTypeAt(x, y).Id;
+        if (id != "DIRT" && id != "STONE")
             return null;
         
         float noiseValue = Noise.GetNoise(x, y);

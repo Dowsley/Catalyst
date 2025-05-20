@@ -10,7 +10,7 @@ public class WorldGenerator
     public WorldGenerator(World world, int seed)
     {
         _passes.Add(new InitialTerrainPass(world, seed));
-        
+
         // Stone Patches
         FastNoiseLite stoneNoise = new();
         stoneNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
@@ -35,7 +35,7 @@ public class WorldGenerator
         _passes.Add(new PatchesPass(world, clayNoise, "RED_CLAY", "surface", placementThreshold, seed + 4));
         _passes.Add(new PatchesPass(world, clayNoise, "RED_CLAY", "underground", placementThreshold, seed + 5));
         _passes.Add(new PatchesPass(world, clayNoise, "RED_CLAY", "cavern", placementThreshold, seed + 6));
-        
+
         _passes.Add(new SmallCaveCarvingPass(world, seed));
         _passes.Add(new CaveCarvingPass(world, seed));
         _passes.Add(new LongCaveCarving(world, seed));

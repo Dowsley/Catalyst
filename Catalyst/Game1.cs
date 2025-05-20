@@ -210,7 +210,7 @@ public class Game1 : Game
         dirtTileType.AddSpriteVariant(new Sprite2D("Dirt", new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
         
         var stoneTileType = new TileType("STONE", "Stone", "Just stone", 500, true)
-            { MapColor = Color.SlateGray };
+            { MapColor = new Color(130, 127, 129) };
         stoneTileType.AddSpriteVariant(new Sprite2D("Stone", new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
         
         var oakLogType = new TileType("OAK_LOG", "Oak Log", "Just oak log", 200, true)
@@ -226,7 +226,7 @@ public class Game1 : Game
         slateType.AddSpriteVariant(new Sprite2D("Slate", new Rectangle(0, 0, Settings.TileSize, Settings.TileSize)));
         
         var redClayType = new TileType("RED_CLAY", "Red Clay", "Red like... clay?", 100, true)
-            { MapColor = Color.Brown };
+            { MapColor = new Color(149, 81, 67) };
         redClayType.AddSpriteVariant(new Sprite2D("Red Clay", new Rectangle(0, 0, Settings.TileSize, Settings.TileSize)));
 
         _tileRegistry.Register(dirtTileType.Id, dirtTileType);

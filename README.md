@@ -22,16 +22,16 @@ This project uses [FastNoiseLite](https://auburn.github.io/FastNoiseLite/).
   - [X] Passes
   - [X] Layers
   - [X] Change spawn (not working with caves)
+- [X] Add map/debug mode to help see whole map
+  - [X] Basic Input Handling for that
 - [X] More complex world generation
   - [X] Better caves
   - [X] Blending
   - [X] Refactor
   - [X] Stone, dirt, clay patch passes
-  - [ ] Test variations
+  - [X] ~~Test variations~~ GARBAGE
 - [ ] Random should be singletons/factory
-  - Remember to use it on the offset fiasco thats happening in the passes and masks 
-- [X] Add map/debug mode to help see whole map
-  - [X] Basic Input Handling for that
+  - Remember to use it on the offset fiasco thats happening in the passes and masks
 - [ ] Background
   - [ ] Walls
   - [ ] Skybox
