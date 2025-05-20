@@ -16,9 +16,13 @@
 - [X] Basic Input Handling System (Keyboard)
   - [X] Core, Keyboard
   - [X] Mouse
-- [ ] Chunking (ongoing)
-- [ ] World Generation System
-- [ ] Tiles from XML (data-driven approach)
+- [X] Only render what's visible
+- [ ] Mature the World System
+  - [ ] World generation
+    - Layers
+  - [ ] Saving
+  - [ ] Chunking
+- [ ] Tile Types from XML (data-driven approach)
 - [ ] Autotiling/Atlas
 - [ ] Lighting
 - [ ] Entity System

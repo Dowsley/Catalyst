@@ -207,8 +207,10 @@ public class Game1 : Game
         _tileRegistry.Register(oakLogType.Id, oakLogType);
         _tileRegistry.Register(emptyType.Id, emptyType);
     }
-
-    /* Draws to Render Target at native resolution */
+    
+    /// <summary>
+    /// Draws to Render Target at native resolution
+    /// </summary>
     private void MainRender()
     {
         GraphicsDevice.SetRenderTarget(_renderTarget);
@@ -237,11 +239,35 @@ public class Game1 : Game
         _worldSpriteBatch.End();
     }
 
+    /// <summary>
+    /// Renders everything that falls under the camera's view frustrum
+    /// </summary>
     private void DrawTiles()
     {
-        for (int i = 0; i < _world.GetWidth(); i++)
+        // Calculate the camera's view frustum in world coordinates
+        const float viewHalfWidthWorld = Settings.NativeWidth / 2f / Settings.ResScale;
+        const float viewHalfHeightWorld = Settings.NativeHeight / 2f / Settings.ResScale;
+
+        float viewLeftWorld = _camera.Position.X - viewHalfWidthWorld;
+        float viewRightWorld = _camera.Position.X + viewHalfWidthWorld;
+        float viewTopWorld = _camera.Position.Y - viewHalfHeightWorld;
+        float viewBottomWorld = _camera.Position.Y + viewHalfHeightWorld;
+
+        int startTileX = World.WorldToGrid(viewLeftWorld);
+        int endTileX = World.WorldToGrid(viewRightWorld);
+        int startTileY = World.WorldToGrid(viewTopWorld);
+        int endTileY = World.WorldToGrid(viewBottomWorld);
+
+        // Clamp tile indices to world boundaries
+        startTileX = Math.Max(0, startTileX);
+        endTileX = Math.Min(_world.GetWidth() - 1, endTileX); // Max valid index is Width - 1
+        startTileY = Math.Max(0, startTileY);
+        endTileY = Math.Min(_world.GetHeight() - 1, endTileY); // Max valid index is Height - 1
+
+        // Iterate over the visible range of tiles (inclusive for end indices)
+        for (int i = startTileX; i <= endTileX; i++)
         {
-            for (int j = 0; j < _world.GetHeight(); j++)
+            for (int j = startTileY; j <= endTileY; j++)
             {
                 Sprite2D sprite = _world.GetTileSpriteAt(i, j);
                 DrawTile(i, j, sprite);
@@ -269,7 +295,9 @@ public class Game1 : Game
         _uiSpriteBatch.End();
     }
 
-    /* Draws Render Target scaled to window size */
+    /// <summary>
+    /// Draws Render Target scaled to window size
+    /// </summary>
     private void ScaleResolution()
     {
         GraphicsDevice.SetRenderTarget(null);
