@@ -13,7 +13,6 @@ public class InitialTerrainPass : Pass
     {
         Noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
         Noise.SetFrequency(0.05f);
-        Noise.SetSeed(Seed);
 
         float surfaceStartPercent = 0.0f;
         float surfaceEndPercent = 0.0f;

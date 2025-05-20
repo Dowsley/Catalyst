@@ -22,10 +22,12 @@ This project uses [FastNoiseLite](https://auburn.github.io/FastNoiseLite/).
   - [X] Passes
   - [X] Layers
   - [X] Change spawn (not working with caves)
-- [ ] Add map/debug mode to help see whole map
-  - [ ] Input Handling?
-- [ ] Complex World Generation
-- [ ] Walls
+- [ ] More complex world generation
+- [X] Add map/debug mode to help see whole map
+  - [X] Basic Input Handling for that
+- [ ] Background
+  - [ ] Walls
+  - [ ] Skybox
 - [ ] Tile Types from XML (data-driven approach)
 - [ ] Autotiling/Atlas
 - [ ] Lighting

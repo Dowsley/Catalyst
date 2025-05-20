@@ -39,6 +39,15 @@ public class Game1 : Game
     /* Test gameplay */
     private readonly List<string> _placeableTypes = ["GRASS", "STONE", "OAK_LOG"];
     private int _currType = 0;
+
+    /* Map */
+    private bool _isMapOpen = false;
+    private Vector2 _mapCameraPosition = Vector2.Zero;
+    private float _mapCameraZoom = 1.0f; // Initial zoom level for the map
+    private Texture2D _pixelTexture = null!; // For drawing map tiles
+    private const float MapZoomSpeed = 0.1f;
+    private const float MapPanSpeed = 2000.0f;
+    private const float MapTileRenderSize = 1f; // draw each tile as 1x1, the matrix will handle the zoom.
     
     public Game1()
     {
@@ -55,6 +64,8 @@ public class Game1 : Game
     {
         base.Initialize();
         _renderTarget = new RenderTarget2D(GraphicsDevice, Settings.NativeWidth, Settings.NativeHeight);
+        _pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
+        _pixelTexture.SetData([Color.White]);
         
         InitializeTileTypes();
         _world = new World(
@@ -83,33 +94,25 @@ public class Game1 : Game
     {
         InputSystem.Update();
 
-        if (InputSystem.IsActionPressed("exit"))
-            Exit();
-
-        if (InputSystem.IsActionJustPressed("next_tile"))
+        if (InputSystem.IsActionJustPressed("toggle_map"))
         {
-            _currType += 1;
-            if (_currType >= _placeableTypes.Count)
-                _currType = 0;
+            _isMapOpen = !_isMapOpen;
+            if (_isMapOpen)
+            {
+                _mapCameraPosition = World.GridToWorld(_player.GridPosition);
+                _mapCameraZoom = 1.0f;
+            }
         }
 
-        _world.Update(gameTime);
-        _camera.Position = _player.Position + new Vector2(_charTex.Width / 2f, _charTex.Height / 2f);
-
-        var mouseScreenPos = InputSystem.GetMousePosition();
-
-        Matrix worldViewTransformMatrix =
-            Matrix.CreateTranslation(-_camera.Position.X, -_camera.Position.Y, 0) * // Center on camera's focus (player's center)
-            Matrix.CreateScale(Settings.ResScale, Settings.ResScale, 1.0f) *          // Apply zoom
-            Matrix.CreateTranslation(Settings.NativeWidth / 2f, Settings.NativeHeight / 2f, 0); // Translate to screen center
-
-        var lmbPressed = InputSystem.IsMouseButtonPressed(InputSystem.MouseButton.Left);
-        var rmbPressed = InputSystem.IsMouseButtonPressed(InputSystem.MouseButton.Right);
-        if (lmbPressed || rmbPressed)
+        if (_isMapOpen)
         {
-            var worldPos = Vector2.Transform(mouseScreenPos, Matrix.Invert(worldViewTransformMatrix));
-            var gridPos = World.WorldToGrid(worldPos);
-            _world.SetTileAt(gridPos.X, gridPos.Y, lmbPressed ? _tileRegistry.Get(_placeableTypes[_currType]) : _tileRegistry.Get("EMPTY"));
+            UpdateMapControls(gameTime);
+        }
+        else
+        {
+            UpdateGameControls(gameTime);
+            _world.Update(gameTime);
+            _camera.Position = _player.Position + new Vector2(_charTex.Width / 2f, _charTex.Height / 2f);
         }
         
         base.Update(gameTime);
@@ -117,9 +120,16 @@ public class Game1 : Game
     
     protected override void Draw(GameTime gameTime)
     {
-        MainRender();
-        ScaleResolution();
-        DrawUI();
+        if (_isMapOpen)
+        {
+            DrawMapMode();
+        }
+        else
+        {
+            MainRender();
+            ScaleResolution();
+            DrawUI();
+        }
 
         base.Draw(gameTime);
     }
@@ -137,11 +147,19 @@ public class Game1 : Game
 
     private void RegisterActions()
     {
-        InputSystem.CreateAction("exit", [Keys.Escape]);
         InputSystem.CreateAction("left", [Keys.A]);
         InputSystem.CreateAction("right", [Keys.D]);
         InputSystem.CreateAction("jump", [Keys.Space]);
         InputSystem.CreateAction("next_tile", [Keys.Tab]);
+        InputSystem.CreateAction("toggle_map", [Keys.M]);
+        InputSystem.CreateAction("exit_map", [Keys.Escape]);
+        InputSystem.CreateAction("map_up", [Keys.W]);
+        InputSystem.CreateAction("map_down", [Keys.S]);
+        InputSystem.CreateAction("map_left", [Keys.A]);
+        InputSystem.CreateAction("map_right", [Keys.D]);
+        // Zoom actions can be added here if preferred over mouse wheel
+        // InputSystem.CreateAction("map_zoom_in", [Keys.OemPlus, Keys.Add]);
+        // InputSystem.CreateAction("map_zoom_out", [Keys.OemMinus, Keys.Subtract]);
     }
 
     private Texture2D LookupTexture(string texId)
@@ -189,16 +207,20 @@ public class Game1 : Game
     private void InitializeTileTypes()
     {
         // TODO: Implement data-driven approach. All types should be XMLs, and loaded by a loader inside tileRegistry.
-        var grassTileType = new TileType("GRASS", "Grass", "Just some grass", 100, true);
+        var grassTileType = new TileType("GRASS", "Grass", "Just some grass", 100, true)
+            { MapColor = new Color(34, 139, 34) };
         grassTileType.AddSpriteVariant(new Sprite2D("Grass", new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
         
-        var stoneTileType = new TileType("STONE", "Stone", "Just stone", 500, true);
+        var stoneTileType = new TileType("STONE", "Stone", "Just stone", 500, true)
+            { MapColor = Color.Gray };
         stoneTileType.AddSpriteVariant(new Sprite2D("Stone", new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
         
-        var oakLogType = new TileType("OAK_LOG", "Oak Log", "Just oak log", 200, true);
+        var oakLogType = new TileType("OAK_LOG", "Oak Log", "Just oak log", 200, true)
+            { MapColor = new Color(139, 69, 19) };
         oakLogType.AddSpriteVariant(new Sprite2D("Oak Logs", new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
         
-        var emptyType = new TileType("EMPTY", "Empty", "Just air", 0, false);
+        var emptyType = new TileType("EMPTY", "Empty", "Just air", 0, false)
+            { MapColor = Color.CornflowerBlue };
         emptyType.AddSpriteVariant(new Sprite2D("Empty", new Rectangle(0, 0, Settings.TileSize, Settings.TileSize)));
 
         _tileRegistry.Register(grassTileType.Id, grassTileType);
@@ -349,5 +371,134 @@ public class Game1 : Game
             
             _worldSpriteBatch.Draw(_debugTexture, worldPos, new Rectangle(0, 1, 8, 8), Color.Yellow);
         }
+    }
+
+    private void UpdateGameControls(GameTime gameTime)
+    {
+        if (InputSystem.IsActionJustPressed("next_tile"))
+        {
+            _currType += 1;
+            if (_currType >= _placeableTypes.Count)
+                _currType = 0;
+        }
+
+        var mouseScreenPos = InputSystem.GetMousePosition();
+
+        Matrix worldViewTransformMatrix =
+            Matrix.CreateTranslation(-_camera.Position.X, -_camera.Position.Y, 0) * // Center on camera's focus (player's center)
+            Matrix.CreateScale(Settings.ResScale, Settings.ResScale, 1.0f) *          // Apply zoom
+            Matrix.CreateTranslation(Settings.NativeWidth / 2f, Settings.NativeHeight / 2f, 0); // Translate to screen center
+
+        var lmbPressed = InputSystem.IsMouseButtonPressed(InputSystem.MouseButton.Left);
+        var rmbPressed = InputSystem.IsMouseButtonPressed(InputSystem.MouseButton.Right);
+        if (lmbPressed || rmbPressed)
+        {
+            var worldPos = Vector2.Transform(mouseScreenPos, Matrix.Invert(worldViewTransformMatrix));
+            var gridPos = World.WorldToGrid(worldPos);
+            _world.SetTileAt(gridPos.X, gridPos.Y, lmbPressed ? _tileRegistry.Get(_placeableTypes[_currType]) : _tileRegistry.Get("EMPTY"));
+        }
+    }
+
+    private void UpdateMapControls(GameTime gameTime)
+    {
+        float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        if (InputSystem.IsActionPressed("map_up"))
+            _mapCameraPosition.Y -= MapPanSpeed * deltaTime / _mapCameraZoom;
+        if (InputSystem.IsActionPressed("map_down"))
+            _mapCameraPosition.Y += MapPanSpeed * deltaTime / _mapCameraZoom;
+        if (InputSystem.IsActionPressed("map_left"))
+            _mapCameraPosition.X -= MapPanSpeed * deltaTime / _mapCameraZoom;
+        if (InputSystem.IsActionPressed("map_right"))
+            _mapCameraPosition.X += MapPanSpeed * deltaTime / _mapCameraZoom;
+
+        // Zoom with mouse wheel
+        var scrollDelta = InputSystem.GetMouseScrollDelta();
+        switch (scrollDelta)
+        {
+            case > 0:
+                _mapCameraZoom += MapZoomSpeed * _mapCameraZoom; // Zoom in, increase zoom factor
+                break;
+            case < 0:
+                _mapCameraZoom -= MapZoomSpeed * _mapCameraZoom; // Zoom out, decrease zoom factor
+                break;
+        }
+            
+        _mapCameraZoom = Math.Max(0.1f, _mapCameraZoom); // Prevent zoom from becoming too small or zero
+
+        // Clamp map camera position to world bounds (considering zoom)
+        // The position is in world coordinates, so we need to convert the half-screen size to world coordinates.
+        float halfViewWidthWorld = Settings.NativeWidth / (2f * _mapCameraZoom) ; 
+        float halfViewHeightWorld = Settings.NativeHeight / (2f * _mapCameraZoom);
+
+        _mapCameraPosition.X = MathHelper.Clamp(_mapCameraPosition.X, halfViewWidthWorld, (World.GridToWorld(_world.GetWidth())) - halfViewWidthWorld);
+        _mapCameraPosition.Y = MathHelper.Clamp(_mapCameraPosition.Y, halfViewHeightWorld, (World.GridToWorld(_world.GetHeight())) - halfViewHeightWorld);
+    }
+
+    private void DrawMapMode()
+    {
+        GraphicsDevice.SetRenderTarget(_renderTarget);
+        GraphicsDevice.Clear(Color.Black);
+
+        Matrix mapTransformMatrix =
+            Matrix.CreateTranslation(-_mapCameraPosition.X / Settings.TileSize, -_mapCameraPosition.Y / Settings.TileSize, 0) * 
+            Matrix.CreateScale(_mapCameraZoom) * 
+            Matrix.CreateTranslation(Settings.NativeWidth / 2f, Settings.NativeHeight / 2f, 0); 
+
+        _worldSpriteBatch.Begin(
+            samplerState: SamplerState.PointClamp,
+            transformMatrix: mapTransformMatrix
+        );
+
+
+        // Calculate the camera's view frustum in Tile coordinates for the map
+        // Convert screen size to tile space view dimensions based on current zoom.
+        float viewHalfWidthInTiles = Settings.NativeWidth / (2f * _mapCameraZoom * MapTileRenderSize); 
+        float viewHalfHeightInTiles = Settings.NativeHeight / (2f * _mapCameraZoom * MapTileRenderSize);
+        
+        Point mapCameraGridPos = World.WorldToGrid(_mapCameraPosition);
+
+        int startTileX = (int)Math.Max(0, mapCameraGridPos.X - viewHalfWidthInTiles);
+        int endTileX = (int)Math.Min(_world.GetWidth() -1, mapCameraGridPos.X + viewHalfWidthInTiles);
+        int startTileY = (int)Math.Max(0, mapCameraGridPos.Y - viewHalfHeightInTiles);
+        int endTileY = (int)Math.Min(_world.GetHeight() -1, mapCameraGridPos.Y + viewHalfHeightInTiles);
+        
+        for (int x = startTileX; x <= endTileX; x++)
+        {
+            for (int y = startTileY; y <= endTileY; y++)
+            {
+                TileType tileType = _world.GetTileTypeAt(x, y);
+                if (tileType.Id != "EMPTY") // Don't draw empty tiles or draw them with sky color
+                {
+                    _worldSpriteBatch.Draw(
+                        _pixelTexture, // A 1x1 white texture
+                        new Vector2(x, y), // Position in tile coordinates
+                        null,
+                        tileType.MapColor,
+                        0f,
+                        Vector2.Zero,
+                        1f, // each tile is 1x1 "pixel" on the map
+                        SpriteEffects.None,
+                        0f
+                    );
+                }
+            }
+        }
+        
+        // Optionally, draw the player's position on the map
+        Vector2 playerMapPos = new Vector2(_player.GridPosition.X, _player.GridPosition.Y); // Get player's grid position
+        _worldSpriteBatch.Draw(
+            _pixelTexture,
+            playerMapPos,
+            null,
+            Color.Red,
+            0f,
+            Vector2.Zero,
+            1f,
+            SpriteEffects.None,
+            1f // Ensure player is drawn on top
+         );
+
+        _worldSpriteBatch.End();
+        ScaleResolution();
     }
 }

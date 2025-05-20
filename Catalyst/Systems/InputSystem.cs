@@ -199,4 +199,13 @@ public static class InputSystem
     {
         return new Vector2(_currentMouseState.X - _previousMouseState.X, _currentMouseState.Y - _previousMouseState.Y);
     }
+
+    /// <summary>
+    /// Gets the change in mouse scroll wheel value since the last frame.
+    /// </summary>
+    /// <returns>The difference in scroll wheel value.</returns>
+    public static int GetMouseScrollDelta()
+    {
+        return _currentMouseState.ScrollWheelValue - _previousMouseState.ScrollWheelValue;
+    }
 }

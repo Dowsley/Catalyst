@@ -9,7 +9,6 @@ public class CaveCarvingPass : Pass
     {
         Noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
         Noise.SetFrequency(0.07f);
-        Noise.SetSeed(Seed);
 
         PassMask = new LayerMask(world.WorldSize, ["space", "surface"], allowList: false);
     }

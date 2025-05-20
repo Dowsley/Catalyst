@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Catalyst.Graphics;
+using Microsoft.Xna.Framework;
 
 namespace Catalyst.Tiles;
 
@@ -13,6 +14,7 @@ public class TileType(string id, string name, string description, int maxHealth,
     public string Description { get; set; } = description;
     public int MaxHealth { get; set; } = maxHealth;
     public bool IsSolid { get; set; } = isSolid;
+    public Color MapColor { get; set; } = Color.Magenta;
     public List<Sprite2D> SpriteVariants = [];
 
     public Sprite2D GetSprite(int index)
