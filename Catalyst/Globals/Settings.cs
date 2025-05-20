@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+
 namespace Catalyst.Globals;
 
 public static class Settings
@@ -15,7 +19,20 @@ public static class Settings
     public const float GroundFriction = 0.8f;    // Retain 80% of velocity on ground
     public const float AirResistance = 0.5f;     // Retain 50% of velocity in air
     public const float MinimumVelocity = 0.1f;   // Below this, velocity snaps to zero
+
+    public static Point Up = new(0, -1);
+    public static Point Down = new(0, 1);
+    public static Point Left = new(-1, 0);
+    public static Point Right = new(1, 0);
     
     // World gen
-    public const int WorldGenNoiseAmplitude = 5;
+    // Layers: Works in ranges [[ ranges. From 0, to LAYER_NUM1-1. Then from LAYER_NUM1 to to LAYER_NUM2-1 etc.  
+    public static List<(string, float)> Layers =
+    [
+        ("space", 0.05f),
+        ("surface", 0.15f),
+        ("underground", 0.5f),
+        ("cavern", 0.9f),
+        ("underworld", 1f),
+    ];
 }

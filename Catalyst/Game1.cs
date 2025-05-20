@@ -58,8 +58,8 @@ public class Game1 : Game
         
         InitializeTileTypes();
         _world = new World(
-            Settings.NativeWidth / Settings.TileSize, 
-            Settings.NativeHeight / Settings.TileSize,
+            1750, // Small sized world for now https://terraria.fandom.com/wiki/World_size
+            900,
             _tileRegistry,
             _debug
         );
@@ -179,8 +179,7 @@ public class Game1 : Game
 
     private void InitializePlayer()
     {
-        var spawningPos = _world.GetSpawningPosForPlayer();
-        spawningPos.Y -= 5 * Settings.TileSize; //offset in blocks
+        var spawningPos = World.GridToWorld(_world.GetSpawningPosForPlayer());
         _player = new Player(spawningPos, new Vector2(_charTex.Width, _charTex.Height));
         _camera = new Camera2D(_player.Position);
         
@@ -279,11 +278,11 @@ public class Game1 : Game
     {
         _uiSpriteBatch.Begin();
 
-        var text = $"{_placeableTypes[_currType]}";
+        var selectedTileText = $"{_placeableTypes[_currType]}";
         var topLeftMargin = new Vector2(10, 10);
         _uiSpriteBatch.DrawString(
             _mainFont,
-            text,
+            selectedTileText,
             topLeftMargin,
             Color.LightGreen,
             0f,
@@ -292,6 +291,23 @@ public class Game1 : Game
             SpriteEffects.None,
             0.5f
         );
+
+        var playerGridY = World.WorldToGrid(_player.Position.Y);
+        var heightText = $"Height: {playerGridY}";
+        var heightTextPosition = new Vector2(10, 10 + _mainFont.MeasureString(selectedTileText).Y * 0.5f + 5); // Position below the first text with a small margin
+
+        _uiSpriteBatch.DrawString(
+            _mainFont,
+            heightText,
+            heightTextPosition,
+            Color.LightCyan,
+            0f,
+            Vector2.Zero,
+            0.5f,
+            SpriteEffects.None,
+            0.5f
+        );
+
         _uiSpriteBatch.End();
     }
 

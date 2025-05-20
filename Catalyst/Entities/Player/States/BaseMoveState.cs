@@ -5,7 +5,6 @@ using Catalyst.Globals;
 using Catalyst.Systems;
 using Catalyst.Utils;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 
 namespace Catalyst.Entities.Player.States;
 

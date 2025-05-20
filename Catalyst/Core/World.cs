@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Catalyst.Core.WorldGeneration;
 using Catalyst.Entities;
 using Catalyst.Entities.Player;
 using Catalyst.Globals;
@@ -8,7 +9,6 @@ using Catalyst.Systems;
 using Catalyst.Tiles;
 using Catalyst.Utils;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 
 namespace Catalyst.Core;
 
@@ -16,6 +16,7 @@ public class World
 {
     public readonly CollisionSystem CollisionSystem;
     public readonly TileRegistry TileRegistry;
+    public readonly WorldGenerator Generator;
     
     public readonly Queue<Point> DebugCollidedTiles = [];
     public readonly Queue<Point> DebugCheckedTiles = [];
@@ -23,25 +24,25 @@ public class World
     public float DebugTimer = 0f;
     
     private const int SpawnAreaSize = 5;
-    
-    private readonly Point _worldSize;
+
+    public readonly Point WorldSize;
     private readonly Tile[,] _tiles;
-    private readonly FastNoiseLite _noise = new();
-    private Random _random = null!;
     
     private Player _playerRef = null!;
     private readonly List<Entity> _npcs = [];
 
     private readonly bool _debug;
+    private const int Seed = 0;
+    private readonly Random _random = new(Seed);
 
     public World(int sizeX, int sizeY, TileRegistry tileRegistry, bool debug=false)
     {
         _debug = debug;
         _tiles = new Tile[sizeX, sizeY];
-        _worldSize = new Point(sizeX, sizeY);
+        WorldSize = new Point(sizeX, sizeY);
         CollisionSystem = new CollisionSystem(this, _debug);
         TileRegistry = tileRegistry;
-        SetupRandom();
+        Generator = new WorldGenerator(this, Seed);
     }
     
     public void Update(GameTime gameTime)
@@ -65,18 +66,7 @@ public class World
     
     public void GenerateTerrain()
     {
-        // TODO: Implement world generation.
-        for (int x = 0; x < _worldSize.X; x++)
-        {
-            float noiseValue = _noise.GetNoise(x, 0);
-            int surfaceY = (int)(_worldSize.Y / 2 + noiseValue * Settings.WorldGenNoiseAmplitude);
-            for (int y = 0; y < _worldSize.Y; y++)
-            {
-                var type = y > surfaceY ? TileRegistry.Get("GRASS") : TileRegistry.Get("EMPTY");
-                var tile = new Tile(type, type.GetRandomSpriteIndex(_random));
-                _tiles[x, y] = tile;
-            }
-        }
+        Generator.Generate();
     }
 
     public void SetPlayer(Player playerRef)
@@ -96,7 +86,7 @@ public class World
     
     public bool IsWithinBounds(int x, int y)
     {
-        return x >= 0 && x < _worldSize.X && y >= 0 && y < _worldSize.Y;
+        return x >= 0 && x < WorldSize.X && y >= 0 && y < WorldSize.Y;
     }
     
     public bool IsPositionSolid(int x, int y)
@@ -106,41 +96,34 @@ public class World
     
     public int GetWidth()
     {
-        return _worldSize.X;
+        return WorldSize.X;
     }
     
     public int GetHeight()
     {
-        return _worldSize.Y;
+        return WorldSize.Y;
     }
 
-    public Vector2 GetSpawningPosForPlayer()
+    /// <summary>
+    /// Finds a random spawning position for player.
+    /// </summary>
+    /// <returns>Position in grid space</returns>
+    public Point GetSpawningPosForPlayer()
     {
-        int middle = GetWidth() / 2;
-        for (int x = int.Max(middle-SpawnAreaSize, 0); x < int.Min(middle+SpawnAreaSize+1, GetWidth()-1); x++)
+        int middleHorizontal = GetWidth() / 2;
+        for (int x = int.Max(middleHorizontal-SpawnAreaSize, 0); x < int.Min(middleHorizontal+SpawnAreaSize+1, GetWidth()-1); x++)
         {
-            // Find first empty block to stand on
-            for (int y = GetHeight() - 1; y >= 0; y--)
+            for (int y = 0; y < GetHeight(); y++)
             {
                 var tile = GetTileTypeAt(x, y);
-                if (tile.Id == "EMPTY")
+                if (tile.IsSolid)
                 {
-                    return new Vector2(x, y) * Settings.TileSize;
+                    return new Point(x, y-5); // 5 blocks up to give space to the player
                 }
             }
         }
         
-        return Vector2.Zero;
-    }
-
-    private void SetupRandom()
-    {
-        _noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
-        _noise.SetFrequency(0.05f);
-        
-        var seed = new Random().Next();
-        _noise.SetSeed(seed);
-        _random = new Random(seed);
+        return new Point(middleHorizontal, 5); // 5 below origin so player does not get stuck in skybox
     }
 
     /// <summary>
@@ -192,6 +175,14 @@ public class World
         if (IsWithinBounds(x, y))
         {
             _tiles[x, y] = new Tile(type, type.GetRandomSpriteIndex(_random));
+        }
+    }
+    
+    public void SetTileAt(int x, int y, Tile tile)
+    {
+        if (IsWithinBounds(x, y))
+        {
+            _tiles[x, y] = tile;
         }
     }
 }
