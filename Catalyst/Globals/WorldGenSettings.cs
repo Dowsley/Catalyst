@@ -32,7 +32,7 @@ public static class WorldGenSettings
     public static float ComputeSurfaceBaseLine(Point worldSize)
     {
         var (surfaceStartPercent, surfaceEndPercent) = GetLayerBoundaryRatios("surface");
-        float surfaceMidPointYPercent = (surfaceStartPercent + surfaceEndPercent) / 2.0f;
+        float surfaceMidPointYPercent = (surfaceStartPercent + surfaceEndPercent) / 2f;
         return worldSize.Y * surfaceMidPointYPercent;
     }
 } 

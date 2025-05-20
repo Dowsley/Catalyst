@@ -23,7 +23,8 @@ public class Game1 : Game
     private RenderTarget2D _renderTarget = null!;
     private SpriteFont _mainFont = null!;
     private Texture2D _charTex = null!;
-    private Dictionary<string, Texture2D> _textures = new();
+    private readonly Dictionary<string, Texture2D> _textures = new();
+    private Color _defaultBackgroundColor = Color.CornflowerBlue;
 
     /* Core */
     private readonly TileRegistry _tileRegistry = new();
@@ -37,7 +38,7 @@ public class Game1 : Game
     private Texture2D _debugTexture = null!;
     
     /* Test gameplay */
-    private readonly List<string> _placeableTypes = ["GRASS", "STONE", "OAK_LOG"];
+    private readonly List<string> _placeableTypes = ["DIRT", "STONE", "OAK_LOG"];
     private int _currType = 0;
 
     /* Map */
@@ -69,7 +70,7 @@ public class Game1 : Game
         
         InitializeTileTypes();
         _world = new World(
-            1750, // Small sized world for now https://terraria.fandom.com/wiki/World_size
+            1750, // Tiny sized world for now https://terraria.fandom.com/wiki/World_size
             900,
             _tileRegistry,
             _debug
@@ -145,7 +146,7 @@ public class Game1 : Game
         );
     }
 
-    private void RegisterActions()
+    private static void RegisterActions()
     {
         InputSystem.CreateAction("left", [Keys.A]);
         InputSystem.CreateAction("right", [Keys.D]);
@@ -157,9 +158,6 @@ public class Game1 : Game
         InputSystem.CreateAction("map_down", [Keys.S]);
         InputSystem.CreateAction("map_left", [Keys.A]);
         InputSystem.CreateAction("map_right", [Keys.D]);
-        // Zoom actions can be added here if preferred over mouse wheel
-        // InputSystem.CreateAction("map_zoom_in", [Keys.OemPlus, Keys.Add]);
-        // InputSystem.CreateAction("map_zoom_out", [Keys.OemMinus, Keys.Subtract]);
     }
 
     private Texture2D LookupTexture(string texId)
@@ -207,12 +205,12 @@ public class Game1 : Game
     private void InitializeTileTypes()
     {
         // TODO: Implement data-driven approach. All types should be XMLs, and loaded by a loader inside tileRegistry.
-        var grassTileType = new TileType("GRASS", "Grass", "Just some grass", 100, true)
-            { MapColor = new Color(34, 139, 34) };
-        grassTileType.AddSpriteVariant(new Sprite2D("Grass", new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
+        var dirtTileType = new TileType("DIRT", "Dirt", "Just some dirt", 100, true)
+            { MapColor = new Color(151, 106, 76) };
+        dirtTileType.AddSpriteVariant(new Sprite2D("Dirt", new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
         
         var stoneTileType = new TileType("STONE", "Stone", "Just stone", 500, true)
-            { MapColor = Color.Gray };
+            { MapColor = Color.SlateGray };
         stoneTileType.AddSpriteVariant(new Sprite2D("Stone", new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
         
         var oakLogType = new TileType("OAK_LOG", "Oak Log", "Just oak log", 200, true)
@@ -220,13 +218,23 @@ public class Game1 : Game
         oakLogType.AddSpriteVariant(new Sprite2D("Oak Logs", new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
         
         var emptyType = new TileType("EMPTY", "Empty", "Just air", 0, false)
-            { MapColor = Color.CornflowerBlue };
+            { MapColor = _defaultBackgroundColor };
         emptyType.AddSpriteVariant(new Sprite2D("Empty", new Rectangle(0, 0, Settings.TileSize, Settings.TileSize)));
+        
+        var slateType = new TileType("SLATE", "Slate", "Hard like bedrock", 1000, true)
+            { MapColor = Color.DarkSlateGray };
+        slateType.AddSpriteVariant(new Sprite2D("Slate", new Rectangle(0, 0, Settings.TileSize, Settings.TileSize)));
+        
+        var redClayType = new TileType("RED_CLAY", "Red Clay", "Red like... clay?", 100, true)
+            { MapColor = Color.Brown };
+        redClayType.AddSpriteVariant(new Sprite2D("Red Clay", new Rectangle(0, 0, Settings.TileSize, Settings.TileSize)));
 
-        _tileRegistry.Register(grassTileType.Id, grassTileType);
+        _tileRegistry.Register(dirtTileType.Id, dirtTileType);
         _tileRegistry.Register(stoneTileType.Id, stoneTileType);
         _tileRegistry.Register(oakLogType.Id, oakLogType);
         _tileRegistry.Register(emptyType.Id, emptyType);
+        _tileRegistry.Register(slateType.Id, slateType);
+        _tileRegistry.Register(redClayType.Id, redClayType);
     }
     
     /// <summary>
@@ -235,7 +243,7 @@ public class Game1 : Game
     private void MainRender()
     {
         GraphicsDevice.SetRenderTarget(_renderTarget);
-        GraphicsDevice.Clear(Color.CornflowerBlue);
+        GraphicsDevice.Clear(_defaultBackgroundColor);
 
         var transformMatrixForRender =
             Matrix.CreateTranslation(-_camera.Position.X, -_camera.Position.Y, 0) * // Center view on camera's focus point
@@ -352,7 +360,8 @@ public class Game1 : Game
     private void DebugDrawPlayerHitBox()
     {
         _worldSpriteBatch.Draw(_debugTexture, new Rectangle(
-                (int)_player.CollisionShape.Position.X, (int)_player.CollisionShape.Position.Y, (int)_player.CollisionShape.Size.X, (int)_player.CollisionShape.Size.Y)
+                (int)_player.CollisionShape.Position.X, (int)_player.CollisionShape.Position.Y,
+                (int)_player.CollisionShape.Size.X, (int)_player.CollisionShape.Size.Y)
             , _debugColor);
     }
 
@@ -467,7 +476,7 @@ public class Game1 : Game
             for (int y = startTileY; y <= endTileY; y++)
             {
                 TileType tileType = _world.GetTileTypeAt(x, y);
-                if (tileType.Id != "EMPTY") // Don't draw empty tiles or draw them with sky color
+                if (tileType.Id != "EMPTY")
                 {
                     _worldSpriteBatch.Draw(
                         _pixelTexture, // A 1x1 white texture
@@ -484,7 +493,6 @@ public class Game1 : Game
             }
         }
         
-        // Optionally, draw the player's position on the map
         Vector2 playerMapPos = new Vector2(_player.GridPosition.X, _player.GridPosition.Y); // Get player's grid position
         _worldSpriteBatch.Draw(
             _pixelTexture,

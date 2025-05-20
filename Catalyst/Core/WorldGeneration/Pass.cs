@@ -10,8 +10,8 @@ namespace Catalyst.Core.WorldGeneration;
 public abstract class Pass
 {
     protected readonly World World;
-    protected readonly Random Random;
-    protected readonly FastNoiseLite Noise;
+    protected Random Random;
+    protected FastNoiseLite Noise;
     protected readonly Point WorldSize;
     protected readonly TileRegistry TileRegistry;
     protected readonly int Seed;

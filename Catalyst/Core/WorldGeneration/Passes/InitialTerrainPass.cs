@@ -20,7 +20,7 @@ public class InitialTerrainPass : Pass
     {
         float noiseValue = Noise.GetNoise(x, 0);
         int surfaceY = (int)(WorldGenSettings.ComputeSurfaceBaseLine(WorldSize) + noiseValue * Amplitude);
-        var type = y > surfaceY ? TileRegistry.Get("GRASS") : TileRegistry.Get("EMPTY");
+        var type = y > surfaceY ? TileRegistry.Get("DIRT") : TileRegistry.Get("EMPTY");
         return new Tile(type, type.GetRandomSpriteIndex(Random));
     }
 }
