@@ -11,7 +11,13 @@ public class LayerMask : PassMask
     private readonly FastNoiseLite? _boundaryNoise;
     private readonly float _boundaryNoiseAmplitude;
 
-    public LayerMask(Point size, List<string> layersToAffect, bool allowList = true, 
+    private struct LayerBoundaryData
+    {
+        public float NominalStart;
+        public float NominalEnd;
+    }
+
+    public LayerMask(Point size, List<string> layersToAffect, bool allowList = true,
                      int boundaryNoiseSeed = 0, float boundaryNoiseFrequency = 0.03f, float boundaryNoiseAmplitude = 0.015f)
         : base(size)
     {
@@ -23,12 +29,30 @@ public class LayerMask : PassMask
             _boundaryNoise.SetFrequency(boundaryNoiseFrequency);
         }
 
+        var affectedLayerBoundaries = new List<LayerBoundaryData>();
+        foreach (var layerName in layersToAffect)
+        {
+            var (start, end) = WorldGenSettings.GetLayerBoundaryRatios(layerName);
+            if (start < end) 
+            {
+                affectedLayerBoundaries.Add(new LayerBoundaryData { NominalStart = start, NominalEnd = end });
+            }
+        }
+
         for (int x = 0; x < size.X; x++)
         {
             for (int y = 0; y < size.Y; y++)
             {
-                var pos = new Point(x, y);
-                bool isInAtLeastOneSpecifiedLayer = layersToAffect.Any(layerName => IsInLayer(pos, size, layerName, x));
+                float yRatio = (float)y / size.Y;
+                bool isInAtLeastOneSpecifiedLayer = false;
+
+                if (affectedLayerBoundaries.Count > 0)
+                {
+                    if (affectedLayerBoundaries.Any(boundaryData => IsInLayer_PreCalculated(yRatio, boundaryData.NominalStart, boundaryData.NominalEnd, x)))
+                    {
+                        isInAtLeastOneSpecifiedLayer = true;
+                    }
+                }
 
                 if (allowList)
                 {
@@ -42,37 +66,21 @@ public class LayerMask : PassMask
         }
     }
 
-    protected bool IsInLayer(Point gridPos, Point currentWorldSize, string layerIdToMatch, int currentX)
+    private bool IsInLayer_PreCalculated(float yRatio, float nominalStart, float nominalEnd, int currentX)
     {
-        float yRatio = (float)gridPos.Y / currentWorldSize.Y;
         float noiseOffset = 0f;
-        (float nominalStart, float nominalEnd) layerBoundaries;
-
-        try
-        {
-            layerBoundaries = WorldGenSettings.GetLayerBoundaryRatios(layerIdToMatch);
-        }
-        catch (ArgumentException)
-        {
-            return false;
-        }
-
-        if (layerBoundaries.nominalStart >= layerBoundaries.nominalEnd) 
-        {
-            return false; 
-        }
 
         if (_boundaryNoise != null && _boundaryNoiseAmplitude > 0)
         {
             noiseOffset = _boundaryNoise.GetNoise(currentX, 0f) * _boundaryNoiseAmplitude;
         }
 
-        float noisyStart = Math.Clamp(layerBoundaries.nominalStart + noiseOffset, 0f, 1f);
-        float noisyEnd = Math.Clamp(layerBoundaries.nominalEnd + noiseOffset, 0f, 1f);
+        float noisyStart = Math.Clamp(nominalStart + noiseOffset, 0f, 1f);
+        float noisyEnd = Math.Clamp(nominalEnd + noiseOffset, 0f, 1f);
 
-        if (noisyStart >= noisyEnd) 
+        if (noisyStart >= noisyEnd)
         {
-            return false; 
+            return false;
         }
 
         return yRatio >= noisyStart && yRatio < noisyEnd;
