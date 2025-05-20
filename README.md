@@ -22,12 +22,20 @@ This project uses [FastNoiseLite](https://auburn.github.io/FastNoiseLite/).
   - [X] Passes
   - [X] Layers
   - [X] Change spawn (not working with caves)
-- [ ] More complex world generation
+- [X] More complex world generation
+  - [X] Better caves
+  - [X] Blending
+  - [X] Refactor
+  - [ ] Different types of Grass (either in initial pass or a second pass)
+  - [ ] Different biomes
+  - [ ] Stone, dirt, clay (and maybe ore as well) patch passes
+- [ ] Random should be singletons/factory
 - [X] Add map/debug mode to help see whole map
   - [X] Basic Input Handling for that
 - [ ] Background
   - [ ] Walls
   - [ ] Skybox
+- [ ] Trees
 - [ ] Tile Types from XML (data-driven approach)
 - [ ] Autotiling/Atlas
 - [ ] Lighting
@@ -39,3 +47,5 @@ This project uses [FastNoiseLite](https://auburn.github.io/FastNoiseLite/).
 - [ ] Make Input Action registering data-driven (like in godot)
 - [ ] Saving
 - [ ] Chunking
+- [ ] Generation Improvements
+  - [ ] Need an algorithm for longer, winding caves

@@ -7,10 +7,10 @@ namespace Catalyst.Core.WorldGeneration.Masks;
 /// </summary>
 public class DefaultMask : PassMask
 {
-    public DefaultMask(Point size) : base(size)
+    public DefaultMask(Point size, float val = 1.0f) : base(size)
     {
         for (int x = 0; x < size.X; x++)
             for (int y = 0; y < size.Y; y++)
-                Allowed[x, y] = true;
+                Allowed[x, y] = val;
     }
 }

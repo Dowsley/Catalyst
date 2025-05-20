@@ -94,7 +94,7 @@ public class Game1 : Game
     {
         InputSystem.Update();
 
-        if (InputSystem.IsActionJustPressed("toggle_map"))
+        if (InputSystem.IsActionJustPressed("toggle_map") || (_isMapOpen && InputSystem.IsActionJustPressed("exit_map")))
         {
             _isMapOpen = !_isMapOpen;
             if (_isMapOpen)

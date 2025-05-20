@@ -5,22 +5,40 @@ namespace Catalyst.Core.WorldGeneration.Passes;
 
 public class CaveCarvingPass : Pass
 {
+    private const float BaseThreshold = -0.7f;
+    private const float MaskInfluenceOnThreshold = 0.2f;
+    private const int BoundaryNoiseSeedOffset = 200;
+
     public CaveCarvingPass(World world, int seed) : base(world, seed + 1)
     {
         Noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
-        Noise.SetFrequency(0.07f);
+        Noise.SetFrequency(0.01f);
+        Noise.SetFractalType(FastNoiseLite.FractalType.FBm);
+        Noise.SetFractalOctaves(6);
+        Noise.SetFractalLacunarity(1.27f);
+        Noise.SetFractalGain(1.1f);
+        Noise.SetFractalWeightedStrength(-0.5f);
 
-        PassMask = new LayerMask(world.WorldSize, ["space", "surface"], allowList: false);
+        PassMasks.Clear();
+        PassMasks.Add(new LayerMask(
+            world.WorldSize, 
+            ["space", "surface"], 
+            allowList: false,
+            boundaryNoiseSeed: seed + BoundaryNoiseSeedOffset
+            ));
     }
 
-    protected override Tile? GetTileTransformation(int x, int y)
+    protected override Tile? GetTileTransformation(int x, int y, float maskValue)
     {
-        if (Noise.GetNoise(x, y) > 0.25f)
+        // When maskValue = 0, threshold = BaseThreshold (e.g., -0.7f, harder to carve).
+        // When maskValue = 1, threshold = BaseThreshold + MaskInfluenceOnThreshold (e.g., -0.7f + 0.2f = -0.5f, original ease).
+        float dynamicThreshold = BaseThreshold + (maskValue * MaskInfluenceOnThreshold);
+
+        if (Noise.GetNoise(x, y) <= dynamicThreshold) 
         {
-            return null;
+            return CreateEmptyTile();
         }
 
-        var type = TileRegistry.Get("EMPTY");
-        return new Tile(type, type.GetRandomSpriteIndex(Random));
+        return null;
     }
 }

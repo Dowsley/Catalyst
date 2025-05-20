@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Catalyst.Core.WorldGeneration.Masks;
 using Catalyst.Tiles;
 using Microsoft.Xna.Framework;
@@ -13,7 +15,7 @@ public abstract class Pass
     protected readonly Point WorldSize;
     protected readonly TileRegistry TileRegistry;
     protected readonly int Seed;
-    protected PassMask PassMask; // TODO: make this a group/list of Masks.
+    protected List<PassMask> PassMasks;
 
     protected Pass(World worldRef, int seed)
     {
@@ -23,7 +25,10 @@ public abstract class Pass
         WorldSize = worldRef.WorldSize;
         TileRegistry = worldRef.TileRegistry;
         Seed = seed;
-        PassMask = new DefaultMask(WorldSize);
+        PassMasks =
+        [
+            new DefaultMask(WorldSize)
+        ];
     }
 
     public void Apply()
@@ -32,14 +37,29 @@ public abstract class Pass
         {
             for (int y = 0; y < WorldSize.Y; y++)
             {
-                if (!PassMask.IsAllowed(x, y))
+                // All masks must allow the operation at this point.
+                if (!PassMasks.All(mask => mask.IsAllowed(x, y)))
                     continue;
-                var newTile = GetTileTransformation(x, y);
+
+                // Multiply values from all masks to get the combined strength.
+                float combinedMaskValue = PassMasks.Aggregate(1.0f, (current, mask) => current * mask.GetValue(x, y));
+                
+                // If combined strength is zero or less, skip.
+                if (combinedMaskValue <= 0.0f) 
+                    continue;
+
+                var newTile = GetTileTransformation(x, y, combinedMaskValue);
                 if (newTile != null)
                     World.SetTileAt(x, y, (Tile)newTile);
             }
         }
     }
 
-    protected abstract Tile? GetTileTransformation(int x, int y);
+    protected abstract Tile? GetTileTransformation(int x, int y, float maskValue);
+
+    protected Tile CreateEmptyTile()
+    {
+        var type = TileRegistry.Get("EMPTY");
+        return new Tile(type, type.GetRandomSpriteIndex(Random));
+    }
 }
