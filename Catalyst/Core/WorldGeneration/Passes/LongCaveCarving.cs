@@ -17,11 +17,9 @@ public class LongCaveCarving : Pass
     private readonly FastNoiseLite _distortXNoise;
     private readonly FastNoiseLite _distortYNoise;
 
-    private const int BoundaryNoiseSeedOffset = 200;
-
-    public LongCaveCarving(World world, int seed) : base(world, seed + 1)
+    public LongCaveCarving(World world) : base(world)
     {
-        _mainCaveNoise = new FastNoiseLite(seed + 2);
+        _mainCaveNoise = WorldGenRNG.GenNoise();
         _mainCaveNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
         _mainCaveNoise.SetFrequency(MainFrequency);
         _mainCaveNoise.SetFractalType(FastNoiseLite.FractalType.FBm);
@@ -29,11 +27,11 @@ public class LongCaveCarving : Pass
         _mainCaveNoise.SetFractalGain(0.5f);
         _mainCaveNoise.SetFractalWeightedStrength(0f);
 
-        _distortXNoise = new FastNoiseLite(seed + 3);
+        _distortXNoise = WorldGenRNG.GenNoise();
         _distortXNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
         _distortXNoise.SetFrequency(DistortionFrequency);
 
-        _distortYNoise = new FastNoiseLite(seed + 4);
+        _distortYNoise = WorldGenRNG.GenNoise();
         _distortYNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
         _distortYNoise.SetFrequency(DistortionFrequency);
 
@@ -42,7 +40,7 @@ public class LongCaveCarving : Pass
             world.WorldSize, 
             ["cavern", "underworld"],
             allowList: true, 
-            boundaryNoiseSeed: seed + BoundaryNoiseSeedOffset
+            boundaryNoiseSeed: WorldGenRNG.GenSeed()
             ));
     }
 

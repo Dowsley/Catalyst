@@ -8,12 +8,10 @@ public class InitialTerrainPass : Pass
 {
     private const int Amplitude = 5; // how tall (or low) the hills can be
     
-    public InitialTerrainPass(World world, int seed) : base(world, seed)
+    public InitialTerrainPass(World world) : base(world)
     {
         Noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
         Noise.SetFrequency(0.05f);
-
-
     }
 
     protected override Tile? GetTileTransformation(int x, int y, float maskValue)
@@ -21,6 +19,6 @@ public class InitialTerrainPass : Pass
         float noiseValue = Noise.GetNoise(x, 0);
         int surfaceY = (int)(WorldGenSettings.ComputeSurfaceBaseLine(WorldSize) + noiseValue * Amplitude);
         var type = y > surfaceY ? TileRegistry.Get("DIRT") : TileRegistry.Get("EMPTY");
-        return new Tile(type, type.GetRandomSpriteIndex(Random));
+        return new Tile(type, type.GetRandomSpriteIndex(WorldGenRNG.GenRandomizer()));
     }
 }

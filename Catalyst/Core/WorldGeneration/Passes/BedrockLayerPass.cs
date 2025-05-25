@@ -9,7 +9,7 @@ public class BedrockLayerPass : Pass
     private const float MaskInfluenceOnThreshold = 0.2f;
     private const int BoundaryNoiseSeedOffset = 123;
 
-    public BedrockLayerPass(World world, int seed) : base(world, seed + 1)
+    public BedrockLayerPass(World world) : base(world)
     {
         Noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
         Noise.SetFrequency(0.01f);
@@ -24,7 +24,7 @@ public class BedrockLayerPass : Pass
             world.WorldSize,
             ["underworld"],
             allowList: true,
-            boundaryNoiseSeed: seed + BoundaryNoiseSeedOffset,
+            boundaryNoiseSeed: WorldGenRNG.GenSeed(),
             startBoundaryNoiseAmplitude: 0.0025f,
             endBoundaryNoiseAmplitude: 0f 
         ));
@@ -33,6 +33,6 @@ public class BedrockLayerPass : Pass
     protected override Tile? GetTileTransformation(int x, int y, float maskValue)
     {
         var type = TileRegistry.Get("SLATE");
-        return new Tile(type, type.GetRandomSpriteIndex(Random));
+        return new Tile(type, type.GetRandomSpriteIndex(WorldGenRNG.GenRandomizer()));
     }
 }

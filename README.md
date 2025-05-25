@@ -30,7 +30,7 @@ This project uses [FastNoiseLite](https://auburn.github.io/FastNoiseLite/).
   - [X] Refactor
   - [X] Stone, dirt, clay patch passes
   - [X] ~~Test variations~~ GARBAGE
-- [ ] Random should be singletons/factory
+- [X] Random should be singletons/factory
   - Remember to use it on the offset fiasco thats happening in the passes and masks
 - [ ] Background
   - [ ] Walls

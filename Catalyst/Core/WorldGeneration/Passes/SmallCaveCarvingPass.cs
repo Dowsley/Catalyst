@@ -5,9 +5,7 @@ namespace Catalyst.Core.WorldGeneration.Passes;
 
 public class SmallCaveCarvingPass : Pass
 {
-    private const int BoundaryNoiseSeedOffset = 200;
-
-    public SmallCaveCarvingPass(World world, int seed) : base(world, seed + 1)
+    public SmallCaveCarvingPass(World world) : base(world)
     {
         Noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
         Noise.SetFrequency(0.015f);
@@ -22,7 +20,7 @@ public class SmallCaveCarvingPass : Pass
             world.WorldSize, 
             ["space"], 
             allowList: false, 
-            boundaryNoiseSeed: seed + BoundaryNoiseSeedOffset
+            boundaryNoiseSeed: WorldGenRNG.GenSeed()
             ));
     }
 

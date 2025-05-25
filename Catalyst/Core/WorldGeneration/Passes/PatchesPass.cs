@@ -9,23 +9,20 @@ public class PatchesPass : Pass
 {
     private readonly float _placementThreshold;
     private readonly string _tileTypeId;
-    private const int BoundaryNoiseSeedOffset = 456; // Unique offset
 
-    public PatchesPass(World world, FastNoiseLite noise, string tileTypeId, string targetLayerName, float placementThreshold, int seed) 
-        : base(world, seed)
+    public PatchesPass(World world, FastNoiseLite noise, string tileTypeId, string targetLayerName, float placementThreshold) 
+        : base(world)
     {
         _tileTypeId = tileTypeId;
         _placementThreshold = placementThreshold;
-
         Noise = noise;
-        noise.SetSeed(seed);
 
         PassMasks.Clear();
         PassMasks.Add(new LayerMask(
             world.WorldSize,
             [targetLayerName],
             allowList: true,
-            boundaryNoiseSeed: seed + BoundaryNoiseSeedOffset,
+            boundaryNoiseSeed: WorldGenRNG.GenSeed(),
             startBoundaryNoiseAmplitude: 0.005f,
             endBoundaryNoiseAmplitude: 0.005f
         ));
@@ -42,6 +39,6 @@ public class PatchesPass : Pass
             return null;
         
         var tileType = TileRegistry.Get(_tileTypeId);
-        return new Tile(tileType, tileType.GetRandomSpriteIndex(Random));
+        return new Tile(tileType, tileType.GetRandomSpriteIndex(WorldGenRNG.GenRandomizer()));
     }
 } 

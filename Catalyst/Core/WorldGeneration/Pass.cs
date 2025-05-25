@@ -10,21 +10,17 @@ namespace Catalyst.Core.WorldGeneration;
 public abstract class Pass
 {
     protected readonly World World;
-    protected Random Random;
     protected FastNoiseLite Noise;
     protected readonly Point WorldSize;
     protected readonly TileRegistry TileRegistry;
-    protected readonly int Seed;
     protected List<PassMask> PassMasks;
 
-    protected Pass(World worldRef, int seed)
+    protected Pass(World worldRef)
     {
         World = worldRef;
-        Random = new Random(seed);
-        Noise = new FastNoiseLite(seed);
+        Noise = WorldGenRNG.GenNoise();
         WorldSize = worldRef.WorldSize;
         TileRegistry = worldRef.TileRegistry;
-        Seed = seed;
         PassMasks =
         [
             new DefaultMask(WorldSize)
@@ -60,6 +56,6 @@ public abstract class Pass
     protected Tile CreateEmptyTile()
     {
         var type = TileRegistry.Get("EMPTY");
-        return new Tile(type, type.GetRandomSpriteIndex(Random));
+        return new Tile(type, type.GetRandomSpriteIndex(WorldGenRNG.GenRandomizer()));
     }
 }

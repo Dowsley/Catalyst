@@ -7,9 +7,8 @@ public class CaveCarvingPass : Pass
 {
     private const float BaseThreshold = -0.7f;
     private const float MaskInfluenceOnThreshold = 0.2f;
-    private const int BoundaryNoiseSeedOffset = 200;
 
-    public CaveCarvingPass(World world, int seed) : base(world, seed + 1)
+    public CaveCarvingPass(World world) : base(world)
     {
         Noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
         Noise.SetFrequency(0.01f);
@@ -24,7 +23,7 @@ public class CaveCarvingPass : Pass
             world.WorldSize, 
             ["space", "surface"], 
             allowList: false,
-            boundaryNoiseSeed: seed + BoundaryNoiseSeedOffset
+            boundaryNoiseSeed: WorldGenRNG.GenSeed()
             ));
     }
 
