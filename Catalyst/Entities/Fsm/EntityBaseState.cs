@@ -8,7 +8,7 @@ public abstract class EntityBaseState(Entity owner) : BaseState<Entity>(owner)
 {
 	public override void Enter(World worldRef, GameTime gameTime)
 	{
-		// TODO: Sprite changes should happen here
+		// TODO: Sprite/animation changes should happen here
 	}
 	
 	public virtual EntityBaseState? Input()

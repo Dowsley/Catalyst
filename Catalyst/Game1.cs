@@ -264,7 +264,17 @@ public class Game1 : Game
             DebugDrawPlayerHitBox();
         }
         
-        _worldSpriteBatch.Draw(_charTex, _player.Position, Color.White);
+        _worldSpriteBatch.Draw( // draw player
+            _charTex,
+            _player.Position,
+            null,
+            Color.White,
+            0f,
+            Vector2.Zero,
+            1f,
+            _player.SpriteInverted ? SpriteEffects.FlipHorizontally : SpriteEffects.None,
+            0f
+        );
         _worldSpriteBatch.End();
     }
 

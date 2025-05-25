@@ -16,13 +16,13 @@ public class BaseMoveAirState(Entity owner) : EntityBaseState(owner)
 		if (InputSystem.IsActionPressed("left"))
 		{
 			motion = -1;
-			// TODO: Owner.SetSpriteDir(Owner.SpriteDirs.Left);
+			Owner.SetHorizontalDirection(Entity.HorizontalDir.Left);
 		}
 
 		if (InputSystem.IsActionPressed("right"))
 		{
 			motion = 1;
-			// TODO: Owner.SetSpriteDir(Owner.SpriteDirs.Right);
+			Owner.SetHorizontalDirection(Entity.HorizontalDir.Right);
 		}
 
 		var realPlayerSpeed = Owner.GetRealSpeed() * TimeUtils.GetDelta(gameTime);

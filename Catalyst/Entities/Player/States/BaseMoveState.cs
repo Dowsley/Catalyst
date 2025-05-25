@@ -22,12 +22,10 @@ public class BaseMoveState(Entity owner) : EntityBaseState(owner)
 	public override BaseState<Entity>? Update(World worldRef, GameTime gameTime)
 	{
 		var motion = GetMovementInput();
-		// TODO: Set sprite direction
-		
-		// if (motion < 0)
-		// 	entity.set_sprite_dir(entity.SPRITE_DIRS.LEFT)
-		// elif motion > 0:
-		// entity.set_sprite_dir(entity.SPRITE_DIRS.RIGHT)
+		if (motion < 0f)
+			Owner.SetHorizontalDirection(Entity.HorizontalDir.Left);
+		else if (motion > 0f)
+			Owner.SetHorizontalDirection(Entity.HorizontalDir.Right);
 
 		var realPlayerSpeed = Owner.GetRealSpeed() * TimeUtils.GetDelta(gameTime);
 		Owner.Velocity.Y += Settings.Gravity * TimeUtils.GetDelta(gameTime);
