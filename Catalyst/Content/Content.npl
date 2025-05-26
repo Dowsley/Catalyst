@@ -30,6 +30,16 @@
 			"action": "build",
 			"importer": "FontDescriptionImporter",
 			"processor": "FontDescriptionProcessor"
+		},
+		"effects": {
+			"path": "Shaders/*.fx",
+			"recursive": "False",
+			"action": "build",
+			"importer": "EffectImporter",
+			"processor": "EffectProcessor",
+			"processorParam": {
+				"DebugMode": "Auto"
+			}
 		}
 	}
 }

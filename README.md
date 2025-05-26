@@ -32,15 +32,18 @@ This project uses [FastNoiseLite](https://auburn.github.io/FastNoiseLite/).
   - [X] ~~Test variations~~ GARBAGE
 - [X] Random should be singletons/factory
   - Remember to use it on the offset fiasco thats happening in the passes and masks
-- [ ] Background
-  - [ ] Walls
-  - [ ] Skybox
-- [ ] Trees
+- [ ] Skybox
+  - [ ] Gradient BG
+  - [ ] Parallax System
+- [ ] Background Walls
 - [ ] Tile Types from XML (data-driven approach)
-- [ ] Autotiling/Atlas
 - [ ] Lighting
-- [ ] Entity System
+  - Takes walls into account
+- [ ] Placeable Walls
+- [ ] Trees
+- [ ] Autotiling/Atlas
 - [ ] Tile State (Manager)
+- [ ] Entity System
 - [ ] Player Interaction with the world
   - [ ] Actions (no need to generalize for Entity right now)
 - [ ] UI

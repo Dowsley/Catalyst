@@ -24,7 +24,8 @@ public class Game1 : Game
     private SpriteFont _mainFont = null!;
     private Texture2D _charTex = null!;
     private readonly Dictionary<string, Texture2D> _textures = new();
-    private Color _defaultBackgroundColor = Color.CornflowerBlue;
+    private readonly Color _defaultBackgroundColor = Color.CornflowerBlue;
+    private Effect _gradientSkyEffect = null!;
 
     /* Core */
     private readonly TileRegistry _tileRegistry = new();
@@ -84,6 +85,7 @@ public class Game1 : Game
         _worldSpriteBatch = new SpriteBatch(GraphicsDevice);
         _uiSpriteBatch = new SpriteBatch(GraphicsDevice);
         LoadTextures();
+        _gradientSkyEffect = Content.Load<Effect>("Shaders/GradientEffect");
         
         _debugTexture = new Texture2D(GraphicsDevice, 1, 1);
         _debugTexture.SetData([Color.White]);
@@ -243,7 +245,7 @@ public class Game1 : Game
     private void MainRender()
     {
         GraphicsDevice.SetRenderTarget(_renderTarget);
-        GraphicsDevice.Clear(_defaultBackgroundColor);
+        DrawSkybox();
 
         var transformMatrixForRender =
             Matrix.CreateTranslation(-_camera.Position.X, -_camera.Position.Y, 0) * // Center view on camera's focus point
@@ -275,6 +277,16 @@ public class Game1 : Game
             _player.SpriteInverted ? SpriteEffects.FlipHorizontally : SpriteEffects.None,
             0f
         );
+        _worldSpriteBatch.End();
+    }
+
+    private void DrawSkybox()
+    {
+        _gradientSkyEffect.Parameters["ColorA"].SetValue(new Color(24, 101, 255).ToVector4());
+        _gradientSkyEffect.Parameters["ColorB"].SetValue(new Color(132, 170, 248).ToVector4());
+        
+        _worldSpriteBatch.Begin(effect: _gradientSkyEffect);
+        _worldSpriteBatch.Draw(_pixelTexture, new Rectangle(0, 0, Settings.NativeWidth, Settings.NativeHeight), Color.White);
         _worldSpriteBatch.End();
     }
 
