@@ -27,7 +27,7 @@ namespace Catalyst.Systems;
 ///    being pushed up or down along walls.
 /// </p>
 /// <p>
-/// Known limitations: If entity is moving two fast, it CAN go through walls. Will eventually be fixed when needed.
+/// Known limitations: If entity is moving too fast, it CAN go through walls. Will eventually be fixed when needed.
 /// </p>
 /// </remarks>
 public class CollisionSystem(World worldRef, bool debug=false)

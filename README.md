@@ -31,14 +31,12 @@ This project uses [FastNoiseLite](https://auburn.github.io/FastNoiseLite/).
   - [X] Stone, dirt, clay patch passes
   - [X] ~~Test variations~~ GARBAGE
 - [X] Random should be singletons/factory
-  - Remember to use it on the offset fiasco thats happening in the passes and masks
-- [ ] Skybox
-  - [ ] Gradient BG
-  - [ ] Parallax System
-- [ ] Background Walls
+  - Remember to use it on the offset fiasco that's happening in the passes and masks
+- [X] Skybox
 - [ ] Tile Types from XML (data-driven approach)
 - [ ] Lighting
-  - Takes walls into account
+- [ ] Background Walls
+  - Affects lighting
 - [ ] Placeable Walls
 - [ ] Trees
 - [ ] Autotiling/Atlas

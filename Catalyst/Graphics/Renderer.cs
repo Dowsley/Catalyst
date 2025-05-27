@@ -22,11 +22,23 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
     private readonly Dictionary<string, Texture2D> _textures = new();
     private Effect _gradientSkyEffect = null!;
 
+    private readonly Sprite2D _defaultCloudSprite = new("Cloud Background", new Rectangle(0, 0, 128, 64)); 
+
     private readonly Color _debugColor = new(255, 255, 255, 255/2);
     private Texture2D _debugTexture = null!;
     private Texture2D _pixelTexture = null!;
     
     private const float MapTileRenderSize = 1f;
+
+    // Cloud system fields
+    private readonly Random _random = new();
+    private record CloudData(Vector2 Position, Vector2 Velocity);
+    private readonly List<CloudData> _activeClouds = [];
+    private const int MaxCloudsOnScreen = 5;
+    private const float AttemptCloudSpawnIntervalSecs = 15f; 
+    private const float MinCloudSpeedX = 10f; // pixels/sec
+    private const float MaxCloudSpeedX = 20f; // pixels/sec
+    private float _timeSinceLastCloudSpawn = 0f;
 
     public Texture2D CharacterTexture => _charTex;
 
@@ -51,7 +63,6 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
     private void LoadTextures()
     {
         string graphicsPath = Path.Combine(content.RootDirectory, "Graphics/Pack2");
-
         if (!Directory.Exists(graphicsPath))
         {
             throw new Exception($"Directory not found: {graphicsPath}");
@@ -87,7 +98,8 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
         Vector2 mapCameraPosition, 
         float mapCameraZoom,
         IReadOnlyList<string> placeableTypes,
-        int currentPlaceableTypeIndex)
+        int currentPlaceableTypeIndex
+    )
     {
         if (isMapOpen)
         {
@@ -95,7 +107,7 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
         }
         else
         {
-            MainRender(camera, world, player, debug);
+            MainRender(camera, world, player, debug, gameTime);
             ScaleResolution();
             DrawUI(player, world, placeableTypes, currentPlaceableTypeIndex);
         }
@@ -103,20 +115,27 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
     
     private void DrawTile(int x, int y, Sprite2D sprite)
     {
+        DrawSprite(sprite, new Vector2(x, y) * Settings.TileSize);
+    }
+
+    private void DrawSprite(Sprite2D sprite, Vector2 pos, Color? color = null)
+    {
         Texture2D tex = LookupTexture(sprite.TextureId);
         _worldSpriteBatch.Draw(
             tex,
-            new Vector2(x, y) * Settings.TileSize,
+            pos,
             sprite.SourceRect,
-            Color.White
+            color ?? Color.White
         );
     }
 
     /// <summary>
     /// Draws to Render Target at native resolution
     /// </summary>
-    private void MainRender(Camera2D camera, World world, Player player, bool debug)
+    private void MainRender(Camera2D camera, World world, Player player, bool debug, GameTime gameTime)
     {
+        UpdateClouds(gameTime);
+
         graphicsDevice.SetRenderTarget(_renderTarget);
         DrawSkybox();
 
@@ -155,14 +174,40 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
 
     private void DrawSkybox()
     {
+        DrawSkyGradient();
+        DrawClouds();
+    }
+
+    private void DrawSkyGradient()
+    {
         _gradientSkyEffect.Parameters["ColorA"].SetValue(new Color(24, 101, 255).ToVector4());
         _gradientSkyEffect.Parameters["ColorB"].SetValue(new Color(132, 170, 248).ToVector4());
         
-        _worldSpriteBatch.Begin(effect: _gradientSkyEffect);
+        _worldSpriteBatch.Begin(effect: _gradientSkyEffect, samplerState: SamplerState.PointClamp);
         _worldSpriteBatch.Draw(_pixelTexture, new Rectangle(0, 0, Settings.NativeWidth, Settings.NativeHeight), Color.White);
         _worldSpriteBatch.End();
     }
+    
+    private void DrawClouds()
+    {
+        _worldSpriteBatch.Begin(
+            samplerState: SamplerState.PointClamp,
+            blendState: BlendState.NonPremultiplied
+        );
 
+        Texture2D cloudTexture = LookupTexture(_defaultCloudSprite.TextureId);
+        foreach (var cloud in _activeClouds)
+        {
+            _worldSpriteBatch.Draw(
+                cloudTexture,
+                cloud.Position,
+                _defaultCloudSprite.SourceRect,
+                new Color(255, 255, 255, 255/3) // 1/3rd transparency
+            );
+        }
+        _worldSpriteBatch.End();
+    }
+    
     /// <summary>
     /// Renders everything that falls under the camera's view frustrum
     /// </summary>
@@ -192,6 +237,48 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
             {
                 Sprite2D sprite = world.GetTileSpriteAt(i, j);
                 DrawTile(i, j, sprite);
+            }
+        }
+    }
+
+    // TODO: Move this to Game1
+    private void UpdateClouds(GameTime gameTime)
+    {
+        float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        _timeSinceLastCloudSpawn += deltaTime;
+        if (_activeClouds.Count < MaxCloudsOnScreen && _timeSinceLastCloudSpawn >= AttemptCloudSpawnIntervalSecs)
+        {
+            _timeSinceLastCloudSpawn = 0f;
+
+            // Spawn clouds in the top 1/3 of the screen
+            float spawnY = (float)_random.NextDouble() * (Settings.NativeHeight / 3f);
+            float speedX = MinCloudSpeedX + (float)_random.NextDouble() * (MaxCloudSpeedX - MinCloudSpeedX);
+            
+            float spawnX;
+            if (_random.Next(2) == 0) 
+            {
+                spawnX = -_defaultCloudSprite.SourceRect.Width;
+            }
+            else
+            {
+                spawnX = Settings.NativeWidth;
+                speedX *= -1;
+            }
+            
+            _activeClouds.Add(new CloudData(new Vector2(spawnX, spawnY), new Vector2(speedX, 0)));
+        }
+
+        for (int i = _activeClouds.Count - 1; i >= 0; i--)
+        {
+            var cloud = _activeClouds[i];
+            var newPosition = cloud.Position + cloud.Velocity * deltaTime;
+            _activeClouds[i] = cloud with { Position = newPosition };
+
+            bool isOffScreenLeft = newPosition.X + _defaultCloudSprite.SourceRect.Width < 0;
+            bool isOffScreenRight = newPosition.X > Settings.NativeWidth;
+            if ((cloud.Velocity.X < 0 && isOffScreenLeft) || (cloud.Velocity.X > 0 && isOffScreenRight))
+            {
+                _activeClouds.RemoveAt(i);
             }
         }
     }
@@ -303,7 +390,7 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
             for (int y = startTileY; y <= endTileY; y++)
             {
                 TileType tileType = world.GetTileTypeAt(x, y);
-                if (tileType.Id != "EMPTY") // Use the default background color for empty tiles
+                if (tileType.Id != "EMPTY")
                 {
                     _worldSpriteBatch.Draw(
                         _pixelTexture,

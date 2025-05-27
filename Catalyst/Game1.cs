@@ -34,7 +34,7 @@ public class Game1 : Game
     /* Map */
     private bool _isMapOpen = false;
     private Vector2 _mapCameraPosition = Vector2.Zero;
-    private float _mapCameraZoom = 1.0f; // Initial zoom level for the map
+    private float _mapCameraZoom = 1.0f;
     private const float MapZoomSpeed = 0.1f;
     private const float MapPanSpeed = 2000.0f;
     
@@ -204,24 +204,26 @@ public class Game1 : Game
     private void UpdateMapControls(GameTime gameTime)
     {
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        var factor = MapPanSpeed * deltaTime / _mapCameraZoom;
         if (InputSystem.IsActionPressed("map_up"))
-            _mapCameraPosition.Y -= MapPanSpeed * deltaTime / _mapCameraZoom;
+            _mapCameraPosition.Y -= factor;
         if (InputSystem.IsActionPressed("map_down"))
-            _mapCameraPosition.Y += MapPanSpeed * deltaTime / _mapCameraZoom;
+            _mapCameraPosition.Y += factor;
         if (InputSystem.IsActionPressed("map_left"))
-            _mapCameraPosition.X -= MapPanSpeed * deltaTime / _mapCameraZoom;
+            _mapCameraPosition.X -= factor;
         if (InputSystem.IsActionPressed("map_right"))
-            _mapCameraPosition.X += MapPanSpeed * deltaTime / _mapCameraZoom;
+            _mapCameraPosition.X += factor;
 
         // Zoom with mouse wheel
         var scrollDelta = InputSystem.GetMouseScrollDelta();
+        factor = MapZoomSpeed * _mapCameraZoom;
         switch (scrollDelta)
         {
             case > 0:
-                _mapCameraZoom += MapZoomSpeed * _mapCameraZoom; // Zoom in, increase zoom factor
+                _mapCameraZoom += factor;
                 break;
             case < 0:
-                _mapCameraZoom -= MapZoomSpeed * _mapCameraZoom; // Zoom out, decrease zoom factor
+                _mapCameraZoom -= factor;
                 break;
         }
             

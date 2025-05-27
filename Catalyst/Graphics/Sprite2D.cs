@@ -32,4 +32,6 @@ public class Sprite2D(string textureId, Rectangle sourceRect)
             gridHeight * tileSize
         );
     }
+    
+    // TODO: add modulate
 }
