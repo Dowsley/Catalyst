@@ -142,7 +142,7 @@ public class Game1 : Game
 
     private void InitializeTileTypes()
     {
-        TileTypeLoader.LoadTileTypesFromDirectory("Data/TileTypes", _tileRegistry);
+        new TileTypeLoader().LoadFromDirectory("Data/TileTypes", _tileRegistry);
     }
 
     private void UpdateGameControls(GameTime gameTime)

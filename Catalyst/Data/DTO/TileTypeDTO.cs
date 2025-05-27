@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 
-namespace Catalyst.Data.DTOs;
+namespace Catalyst.Data.DTO;
 
 [XmlRoot("TileType")]
 public class TileTypeDTO

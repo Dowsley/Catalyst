@@ -1,6 +1,6 @@
 using System.Xml.Serialization;
 
-namespace Catalyst.Data.DTOs;
+namespace Catalyst.Data.DTO;
 
 public class SpriteDTO
 {
