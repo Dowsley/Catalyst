@@ -2,13 +2,13 @@ using Microsoft.Xna.Framework;
 
 namespace Catalyst.Graphics;
 
-public class Camera2D
+public class Camera
 {
     public Vector2 Position { get; set; }
     public float Zoom { get; set; }
     public float Rotation { get; set; }
 
-    public Camera2D(Vector2 pos, float zoom=1f, float rot=0f)
+    public Camera(Vector2 pos, float zoom=1f, float rot=0f)
     {
         Position = pos;
         Zoom = zoom;

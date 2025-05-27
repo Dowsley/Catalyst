@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TileType xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Id>OAK_LOG</Id>
+  <Name>Oak Log</Name>
+  <Description>Just oak log</Description>
+  <Durability>200</Durability>
+  <IsSolid>true</IsSolid>
+  <MapColor>
+    <R>139</R>
+    <G>69</G>
+    <B>19</B>
+    <A>255</A>
+  </MapColor>
+  <SpriteVariants>
+    <Sprite2D>
+      <TextureId>Oak Logs</TextureId>
+      <SourceRect>
+        <X>0</X>
+        <Y>1</Y>
+      </SourceRect>
+    </Sprite2D>
+  </SpriteVariants>
+</TileType> 

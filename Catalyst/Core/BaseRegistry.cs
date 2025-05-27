@@ -7,6 +7,8 @@ public abstract class BaseRegistry<T> where T : class
 {
     private readonly Dictionary<string, T> _types = [];
 
+    public int Count => _types.Count;
+
     public T Get(string id)
     {
         _types.TryGetValue(id, out var value);

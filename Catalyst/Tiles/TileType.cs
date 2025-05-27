@@ -15,9 +15,9 @@ public class TileType(string id, string name, string description, int maxHealth,
     public int MaxHealth { get; set; } = maxHealth;
     public bool IsSolid { get; set; } = isSolid;
     public Color MapColor { get; set; } = Color.Magenta;
-    public List<Sprite2D> SpriteVariants = [];
+    public List<Sprite> SpriteVariants = [];
 
-    public Sprite2D GetSprite(int index)
+    public Sprite GetSprite(int index)
     {
         return SpriteVariants[index];
     }
@@ -27,7 +27,7 @@ public class TileType(string id, string name, string description, int maxHealth,
         return random.Next() % SpriteVariants.Count;
     }
 
-    public void AddSpriteVariant(Sprite2D variant)
+    public void AddSpriteVariant(Sprite variant)
     {
         SpriteVariants.Add(variant);
     }

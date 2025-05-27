@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 
 namespace Catalyst.Graphics;
 
-public class Sprite2D(string textureId, Rectangle sourceRect)
+public class Sprite(string textureId, Rectangle sourceRect)
 {
     public readonly string TextureId = textureId;
     public Rectangle SourceRect { get; private set; } = sourceRect;

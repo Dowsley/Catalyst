@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TileType xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Id>SLATE</Id>
+  <Name>Slate</Name>
+  <Description>Hard like bedrock</Description>
+  <Durability>1000</Durability>
+  <IsSolid>true</IsSolid>
+  <MapColor>
+    <R>47</R>
+    <G>79</G>
+    <B>79</B>
+    <A>255</A>
+  </MapColor>
+  <SpriteVariants>
+    <Sprite2D>
+      <TextureId>Slate</TextureId>
+      <SourceRect>
+        <X>0</X>
+        <Y>0</Y>
+      </SourceRect>
+    </Sprite2D>
+  </SpriteVariants>
+</TileType> 

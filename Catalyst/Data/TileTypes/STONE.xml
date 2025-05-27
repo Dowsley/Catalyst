@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TileType xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Id>STONE</Id>
+  <Name>Stone</Name>
+  <Description>Just stone</Description>
+  <Durability>500</Durability>
+  <IsSolid>true</IsSolid>
+  <MapColor>
+    <R>130</R>
+    <G>127</G>
+    <B>129</B>
+    <A>255</A>
+  </MapColor>
+  <SpriteVariants>
+    <Sprite2D>
+      <TextureId>Stone</TextureId>
+      <SourceRect>
+        <X>0</X>
+        <Y>1</Y>
+      </SourceRect>
+    </Sprite2D>
+  </SpriteVariants>
+</TileType> 

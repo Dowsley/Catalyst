@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TileType xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Id>RED_CLAY</Id>
+  <Name>Red Clay</Name>
+  <Description>Red like... clay?</Description>
+  <Durability>100</Durability>
+  <IsSolid>true</IsSolid>
+  <MapColor>
+    <R>149</R>
+    <G>81</G>
+    <B>67</B>
+    <A>255</A>
+  </MapColor>
+  <SpriteVariants>
+    <Sprite2D>
+      <TextureId>Red Clay</TextureId>
+      <SourceRect>
+        <X>0</X>
+        <Y>0</Y>
+      </SourceRect>
+    </Sprite2D>
+  </SpriteVariants>
+</TileType> 

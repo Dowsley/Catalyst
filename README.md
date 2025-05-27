@@ -33,7 +33,7 @@ This project uses [FastNoiseLite](https://auburn.github.io/FastNoiseLite/).
 - [X] Random should be singletons/factory
   - Remember to use it on the offset fiasco that's happening in the passes and masks
 - [X] Skybox
-- [ ] Tile Types from XML (data-driven approach)
+- [X] Tile Types from XML (data-driven approach)
 - [ ] Lighting
 - [ ] Background Walls
   - Affects lighting

@@ -79,7 +79,7 @@ public class World
         return _tiles[x, y].Type;
     }
     
-    public Sprite2D GetTileSpriteAt(int x, int y)
+    public Sprite GetTileSpriteAt(int x, int y)
     {
         return _tiles[x, y].Sprite;
     }

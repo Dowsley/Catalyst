@@ -22,7 +22,7 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
     private readonly Dictionary<string, Texture2D> _textures = new();
     private Effect _gradientSkyEffect = null!;
 
-    private readonly Sprite2D _defaultCloudSprite = new("Cloud Background", new Rectangle(0, 0, 128, 64)); 
+    private readonly Sprite _defaultCloudSprite = new("Cloud Background", new Rectangle(0, 0, 128, 64)); 
 
     private readonly Color _debugColor = new(255, 255, 255, 255/2);
     private Texture2D _debugTexture = null!;
@@ -91,7 +91,7 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
     public void Draw(
         GameTime gameTime, 
         bool isMapOpen, 
-        Camera2D camera, 
+        Camera camera, 
         World world, 
         Player player, 
         bool debug, 
@@ -113,12 +113,12 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
         }
     }
     
-    private void DrawTile(int x, int y, Sprite2D sprite)
+    private void DrawTile(int x, int y, Sprite sprite)
     {
         DrawSprite(sprite, new Vector2(x, y) * Settings.TileSize);
     }
 
-    private void DrawSprite(Sprite2D sprite, Vector2 pos, Color? color = null)
+    private void DrawSprite(Sprite sprite, Vector2 pos, Color? color = null)
     {
         Texture2D tex = LookupTexture(sprite.TextureId);
         _worldSpriteBatch.Draw(
@@ -132,7 +132,7 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
     /// <summary>
     /// Draws to Render Target at native resolution
     /// </summary>
-    private void MainRender(Camera2D camera, World world, Player player, bool debug, GameTime gameTime)
+    private void MainRender(Camera camera, World world, Player player, bool debug, GameTime gameTime)
     {
         UpdateClouds(gameTime);
 
@@ -211,7 +211,7 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
     /// <summary>
     /// Renders everything that falls under the camera's view frustrum
     /// </summary>
-    private void DrawTiles(Camera2D camera, World world)
+    private void DrawTiles(Camera camera, World world)
     {
         const float viewHalfWidthWorld = Settings.NativeWidth / 2f / Settings.ResScale;
         const float viewHalfHeightWorld = Settings.NativeHeight / 2f / Settings.ResScale;
@@ -235,7 +235,7 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
         {
             for (int j = startTileY; j <= endTileY; j++)
             {
-                Sprite2D sprite = world.GetTileSpriteAt(i, j);
+                Sprite sprite = world.GetTileSpriteAt(i, j);
                 DrawTile(i, j, sprite);
             }
         }

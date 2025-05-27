@@ -20,7 +20,7 @@ public class Game1 : Game
 
     /* Core */
     private readonly TileRegistry _tileRegistry = new();
-    private Camera2D _camera = null!;
+    private Camera _camera = null!;
     private World _world = null!;
     private Player _player = null!;
 
@@ -135,44 +135,14 @@ public class Game1 : Game
     {
         var spawningPos = World.GridToWorld(_world.GetSpawningPosForPlayer());
         _player = new Player(spawningPos, new Vector2(_renderer.CharacterTexture.Width, _renderer.CharacterTexture.Height));
-        _camera = new Camera2D(_player.Position);
+        _camera = new Camera(_player.Position);
         
         _world.SetPlayer(_player);
     }
 
     private void InitializeTileTypes()
     {
-        // TODO: Implement data-driven approach. All types should be XMLs, and loaded by a loader inside tileRegistry.
-        var dirtTileType = new TileType("DIRT", "Dirt", "Just some dirt", 100, true)
-            { MapColor = new Color(151, 106, 76) };
-        dirtTileType.AddSpriteVariant(new Sprite2D("Dirt", new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
-        
-        var stoneTileType = new TileType("STONE", "Stone", "Just stone", 500, true)
-            { MapColor = new Color(130, 127, 129) };
-        stoneTileType.AddSpriteVariant(new Sprite2D("Stone", new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
-        
-        var oakLogType = new TileType("OAK_LOG", "Oak Log", "Just oak log", 200, true)
-            { MapColor = new Color(139, 69, 19) };
-        oakLogType.AddSpriteVariant(new Sprite2D("Oak Logs", new Rectangle(0, 1, Settings.TileSize, Settings.TileSize)));
-        
-        var emptyType = new TileType("EMPTY", "Empty", "Just air", 0, false)
-            { MapColor = Color.CornflowerBlue };
-        emptyType.AddSpriteVariant(new Sprite2D("Empty", new Rectangle(0, 0, Settings.TileSize, Settings.TileSize)));
-        
-        var slateType = new TileType("SLATE", "Slate", "Hard like bedrock", 1000, true)
-            { MapColor = Color.DarkSlateGray };
-        slateType.AddSpriteVariant(new Sprite2D("Slate", new Rectangle(0, 0, Settings.TileSize, Settings.TileSize)));
-        
-        var redClayType = new TileType("RED_CLAY", "Red Clay", "Red like... clay?", 100, true)
-            { MapColor = new Color(149, 81, 67) };
-        redClayType.AddSpriteVariant(new Sprite2D("Red Clay", new Rectangle(0, 0, Settings.TileSize, Settings.TileSize)));
-
-        _tileRegistry.Register(dirtTileType.Id, dirtTileType);
-        _tileRegistry.Register(stoneTileType.Id, stoneTileType);
-        _tileRegistry.Register(oakLogType.Id, oakLogType);
-        _tileRegistry.Register(emptyType.Id, emptyType);
-        _tileRegistry.Register(slateType.Id, slateType);
-        _tileRegistry.Register(redClayType.Id, redClayType);
+        TileTypeLoader.LoadTileTypesFromDirectory("Data/TileTypes", _tileRegistry);
     }
 
     private void UpdateGameControls(GameTime gameTime)

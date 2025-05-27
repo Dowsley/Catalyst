@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TileType xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Id>EMPTY</Id>
+  <Name>Empty</Name>
+  <Description>Just air</Description>
+  <Durability>0</Durability>
+  <IsSolid>false</IsSolid>
+  <MapColor>
+    <R>100</R>
+    <G>149</G>
+    <B>237</B>
+    <A>255</A>
+  </MapColor>
+  <SpriteVariants>
+    <Sprite2D>
+      <TextureId>Empty</TextureId>
+      <SourceRect>
+        <X>0</X>
+        <Y>0</Y>
+      </SourceRect>
+    </Sprite2D>
+  </SpriteVariants>
+</TileType> 
