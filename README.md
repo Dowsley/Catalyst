@@ -34,10 +34,10 @@ This project uses [FastNoiseLite](https://auburn.github.io/FastNoiseLite/).
   - Remember to use it on the offset fiasco that's happening in the passes and masks
 - [X] Skybox
 - [X] Tile Types from XML (data-driven approach)
-- [ ] Lighting
+- [X] Lighting
   - [X] Ambient
   - [X] Light source tiles
-  - [ ] Light
+  - [X] Player must be illuminated as well
 - [ ] Walls
   - [ ] Default walls 
   - [ ] Placeable walls

@@ -172,12 +172,19 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
             DebugDrawCheckedTiles(world);
             DebugDrawPlayerHitBox(player);
         }
-        
-        _worldSpriteBatch.Draw(
+
+        var playerPosTile = World.WorldToGrid(player.Position);
+        float lightValue = world.GetLightValueAt(playerPosTile.X, playerPosTile.Y);
+        Color playerColor = new Color(
+            Color.White.R / 255f * lightValue,
+            Color.White.G / 255f * lightValue,
+            Color.White.B / 255f * lightValue
+        );
+        _worldSpriteBatch.Draw( // draw player
             _charTex,
             player.Position,
             null,
-            Color.White,
+            playerColor,
             0f,
             Vector2.Zero,
             1f,
