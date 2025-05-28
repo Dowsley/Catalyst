@@ -55,7 +55,7 @@ public class LongCaveCarving : Pass
         float noiseValue = _mainCaveNoise.GetNoise(warpedX, warpedY * StretchFactor);
         if (Math.Abs(noiseValue) < CaveThreshold)
         {
-            return CreateEmptyTile();
+            return CreateEmptyTile(TileRegistry.Get("DIRT"));
         }
 
         return null;

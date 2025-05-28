@@ -168,8 +168,13 @@ public class Game1 : Game
         {
             var worldPos = Vector2.Transform(mouseScreenPos, Matrix.Invert(worldViewTransformMatrix));
             var gridPos = World.WorldToGrid(worldPos);
-            _world.SetTileAt(gridPos.X, gridPos.Y, lmbPressed ? _tileRegistry.Get(_placeableTypes[_currType]) : _tileRegistry.Get("EMPTY"));
+            PlaceTileAt(gridPos.X, gridPos.Y, lmbPressed ? _tileRegistry.Get(_placeableTypes[_currType]) : _tileRegistry.Get("EMPTY"));
         }
+    }
+
+    void PlaceTileAt(int x, int y, TileType tileType)
+    {
+        _world.SetTileTypeAt(x, y, tileType);
     }
 
     private void UpdateMapControls(GameTime gameTime)

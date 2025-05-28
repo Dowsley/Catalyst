@@ -27,6 +27,7 @@ public abstract class Pass
         ];
     }
 
+    // TODO optimize this without linq expressions that reallocate memory
     public void Apply()
     {
         for (int x = 0; x < WorldSize.X; x++)
@@ -53,9 +54,9 @@ public abstract class Pass
 
     protected abstract Tile? GetTileTransformation(int x, int y, float maskValue);
 
-    protected Tile CreateEmptyTile()
+    protected Tile CreateEmptyTile(TileType? wallType = null)
     {
-        var type = TileRegistry.Get("EMPTY");
-        return new Tile(type, type.GetRandomSpriteIndex(WorldGenRNG.GenRandomizer()));
+        var emptyType = TileRegistry.Get("EMPTY");
+        return new Tile(emptyType, wallType ?? emptyType, emptyType.GetRandomSpriteIndex(WorldGenRNG.GenRandomizer()));
     }
 }

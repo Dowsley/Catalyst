@@ -35,7 +35,7 @@ public class CaveCarvingPass : Pass
 
         if (Noise.GetNoise(x, y) <= dynamicThreshold) 
         {
-            return CreateEmptyTile();
+            return CreateEmptyTile(TileRegistry.Get("DIRT"));
         }
 
         return null;

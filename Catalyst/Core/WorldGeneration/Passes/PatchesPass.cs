@@ -39,6 +39,6 @@ public class PatchesPass : Pass
             return null;
         
         var tileType = TileRegistry.Get(_tileTypeId);
-        return new Tile(tileType, tileType.GetRandomSpriteIndex(WorldGenRNG.GenRandomizer()));
+        return new Tile(tileType, tileType, tileType.GetRandomSpriteIndex(WorldGenRNG.GenRandomizer()));
     }
 } 

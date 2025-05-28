@@ -38,11 +38,13 @@ This project uses [FastNoiseLite](https://auburn.github.io/FastNoiseLite/).
   - [X] Ambient
   - [X] Light source tiles
   - [X] Player must be illuminated as well
-- [ ] Walls
-  - [ ] Default walls 
-  - [ ] Placeable walls
-  - [ ] Affects lighting
-- [ ] Placeable Walls
+- [ ] Walls (starbound-style)
+  - [X] Destructible/Placeable walls
+  - [X] Affects lighting
+  - [ ] Add torch to player for easier debugging
+  - [ ] Allow player to place them
+  - [ ] Layer specific parallax walls
+    - [ ] Affects lighting as well
 - [ ] Trees
 - [ ] Autotiling/Atlas
 - [ ] Tile State (Manager)

@@ -152,7 +152,8 @@ public class LightingSystem
 
                 var currentTile = _world.GetTileAt(x, y);
                 bool isCurrentTileSolid = currentTile.Type.IsSolid;
-                bool isCurrentTileSurfaceAir = !isCurrentTileSolid && y >= surfaceLayerAbsYStart && y < surfaceLayerAbsYEnd;
+                bool hasSolidWall = currentTile.WallType.IsSolid;
+                bool isCurrentTileSurfaceAir = !isCurrentTileSolid && !hasSolidWall && y >= surfaceLayerAbsYStart && y < surfaceLayerAbsYEnd;
                 
                 float lightValueToSet = 0.0f;
 

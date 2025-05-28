@@ -21,6 +21,7 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
     private Texture2D _charTex = null!;
     private readonly Dictionary<string, Texture2D> _textures = new();
     private Effect _gradientSkyEffect = null!;
+    private const float WallDarkeningFactor = 0.5f;
 
     private readonly Sprite _defaultCloudSprite = new("Cloud Background", new Rectangle(0, 0, 128, 64)); 
 
@@ -115,22 +116,22 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
     
     private void DrawTile(World world, int x, int y)
     {
+        var attemptDrawingWall = false;
         var tile = world.GetTileAt(x, y);
         if (tile.Type.Id == "EMPTY")
         {
-            return;
+            attemptDrawingWall = true;
         }
-
-        var sprite = tile.Sprite;
+        var sprite = attemptDrawingWall ? tile.WallSprite : tile.Sprite;
         float lightValue = world.GetLightValueAt(x, y);
         var modulate = sprite.Modulate;
+        var factor = lightValue * (attemptDrawingWall ? WallDarkeningFactor : 1f);
         Color tileColor = new Color(
-            modulate.R / 255f * lightValue,
-            modulate.G / 255f * lightValue,
-            modulate.B / 255f * lightValue
+            modulate.R / 255f * factor,
+            modulate.G / 255f * factor,
+            modulate.B / 255f * factor
         );
-
-        DrawSprite(sprite, new Vector2(x, y) * Settings.TileSize, tileColor);
+        DrawSprite(sprite, new Vector2(x, y) * Settings.TileSize, tileColor); // normal type
     }
 
     private void DrawSprite(Sprite sprite, Vector2 pos, Color? color = null)
@@ -174,7 +175,7 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
         }
 
         var playerPosTile = World.WorldToGrid(player.Position);
-        float lightValue = world.GetLightValueAt(playerPosTile.X, playerPosTile.Y);
+        float lightValue = world.GetLightValueAt(playerPosTile.X, playerPosTile.Y); // TODO: Average out the light value from the blocks the player occupies instead
         Color playerColor = new Color(
             Color.White.R / 255f * lightValue,
             Color.White.G / 255f * lightValue,

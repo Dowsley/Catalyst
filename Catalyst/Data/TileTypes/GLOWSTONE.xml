@@ -2,9 +2,9 @@
 <TileType xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Id>GLOWSTONE</Id>
   <Name>Glowstone</Name>
-  <Description>Just some stone that glows</Description>
+  <Description>Just some stone that glows and is not solid</Description>
   <Durability>50</Durability>
-  <IsSolid>true</IsSolid>
+  <IsSolid>false</IsSolid>
   <MapColor>
     <R>232</R>
     <G>214</G>
@@ -12,7 +12,7 @@
     <A>255</A>
   </MapColor>
   <Glow>
-    1.5
+    1.0
   </Glow>
   <SpriteVariants>
     <Sprite2D>

@@ -26,11 +26,13 @@ public class SmallCaveCarvingPass : Pass
 
     protected override Tile? GetTileTransformation(int x, int y, float maskValue)
     {
-        if (Noise.GetNoise(x, y) > 0.5f) 
-        {
-            return CreateEmptyTile();
-        }
+        if (!(Noise.GetNoise(x, y) > 0.5f))
+            return null;
         
-        return null;
+        var wallType = World.GetTileTypeAt(x, y).IsSolid ? "DIRT" : "EMPTY";
+        return CreateEmptyTile(
+            TileRegistry.Get(wallType)
+        );
+
     }
 }

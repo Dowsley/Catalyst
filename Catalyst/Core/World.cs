@@ -120,7 +120,10 @@ public class World
 
     public Tile GetTileAt(int x, int y)
     {
-        return !IsWithinBounds(x,y) ? new Tile(TileRegistry.Get("EMPTY"), 0) : _tiles[x,y];
+        var emptyType = TileRegistry.Get("EMPTY");
+        return !IsWithinBounds(x,y)
+            ? new Tile(emptyType, emptyType, 0)
+            : _tiles[x,y];
     }
 
     public void GenerateTerrain()
@@ -130,11 +133,35 @@ public class World
         WorldGenerating = false;
     }
 
-    public void SetTileAt(int x, int y, TileType tileType)
+    public void SetTileAt(int x, int y, TileType tileType, TileType? wallType = null)
     {
-        SetTileAt(x, y, new Tile(tileType, tileType.GetRandomSpriteIndex(_random)));
+        SetTileAt(x, y, new Tile(
+            tileType,
+            wallType ?? TileRegistry.Get("EMPTY"),
+            tileType.GetRandomSpriteIndex(_random))
+        );
+    }
+    
+    public void SetTileTypeAt(int x, int y, TileType? tileType, TileType? wallType = null)
+    {
+        if (tileType != null)
+            _tiles[x, y].Type = tileType;
+        if (wallType != null)
+            _tiles[x, y].WallType = wallType;
+        
+        if (WorldGenerating)
+            return;
+        
+        Rectangle changedArea = new Rectangle(
+            x - UpdateRadius,
+            y - UpdateRadius,
+            UpdateRadius * 2,
+            UpdateRadius * 2
+        );
+        _lightingSystem.RequestLightingUpdate(changedArea);
     }
 
+    // TODO: We should stop doing this, and just set TileType instead. Tile is merely a flyweight container.
     public void SetTileAt(int x, int y, Tile tile)
     {
         if (!IsWithinBounds(x, y))

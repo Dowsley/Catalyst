@@ -33,6 +33,6 @@ public class BedrockLayerPass : Pass
     protected override Tile? GetTileTransformation(int x, int y, float maskValue)
     {
         var type = TileRegistry.Get("SLATE");
-        return new Tile(type, type.GetRandomSpriteIndex(WorldGenRNG.GenRandomizer()));
+        return new Tile(type, type, type.GetRandomSpriteIndex(WorldGenRNG.GenRandomizer()));
     }
 }
