@@ -32,7 +32,7 @@ public class World
     private readonly float[,] _lightValues;
     private const int UpdateRadius = 20;
     
-    private Player _playerRef = null!;
+    public Player? PlayerRef = null!;
     private readonly List<Entity> _npcs = [];
 
     private readonly bool _debug;
@@ -188,7 +188,7 @@ public class World
 
     private void UpdateAllEntities(GameTime gameTime)
     {
-        _playerRef.Update(this, gameTime);
+        PlayerRef.Update(this, gameTime);
         foreach (var npc in _npcs)
             npc.Update(this, gameTime);
     }
@@ -291,6 +291,6 @@ public class World
 
     public void SetPlayer(Player playerRef)
     {
-        _playerRef = playerRef;
+        PlayerRef = playerRef;
     }
 }

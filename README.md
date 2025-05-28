@@ -41,8 +41,8 @@ This project uses [FastNoiseLite](https://auburn.github.io/FastNoiseLite/).
 - [ ] Walls (starbound-style)
   - [X] Destructible/Placeable walls
   - [X] Affects lighting
-  - [ ] Add torch to player for easier debugging
-  - [ ] Allow player to place them
+  - [X] Add torch to player for easier debugging
+  - [X] Allow player to place them
   - [ ] Layer specific parallax walls
     - [ ] Affects lighting as well
 - [ ] Trees

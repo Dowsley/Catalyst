@@ -29,6 +29,7 @@ public class Game1 : Game
     
     /* Gameplay */
     private readonly List<string> _placeableTypes = ["DIRT", "STONE", "OAK_LOG", "GLOWSTONE"];
+    private bool _toggleWallMode = false;
     private int _currType = 0;
 
     /* Map */
@@ -112,7 +113,8 @@ public class Game1 : Game
             _mapCameraPosition, 
             _mapCameraZoom,
             _placeableTypes,
-            _currType
+            _currType,
+            _toggleWallMode
             );
 
         base.Draw(gameTime);
@@ -130,6 +132,8 @@ public class Game1 : Game
         InputSystem.CreateAction("map_down", [Keys.S]);
         InputSystem.CreateAction("map_left", [Keys.A]);
         InputSystem.CreateAction("map_right", [Keys.D]);
+        InputSystem.CreateAction("torch", [Keys.LeftShift]);
+        InputSystem.CreateAction("toggle_wall_mode", [Keys.LeftControl]);
     }
 
     private void InitializePlayer()
@@ -148,6 +152,9 @@ public class Game1 : Game
 
     private void UpdateGameControls(GameTime gameTime)
     {
+        _player.IsTorchOn = InputSystem.IsActionPressed("torch");
+        if (InputSystem.IsActionJustPressed("toggle_wall_mode"))
+            _toggleWallMode = !_toggleWallMode;
         if (InputSystem.IsActionJustPressed("next_tile"))
         {
             _currType += 1;
@@ -174,7 +181,7 @@ public class Game1 : Game
 
     void PlaceTileAt(int x, int y, TileType tileType)
     {
-        _world.SetTileTypeAt(x, y, tileType);
+        _world.SetTileTypeAt(x, y, _toggleWallMode ? null : tileType, _toggleWallMode ? tileType : null);
     }
 
     private void UpdateMapControls(GameTime gameTime)

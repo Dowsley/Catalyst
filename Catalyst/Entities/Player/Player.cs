@@ -8,6 +8,7 @@ public class Player(Vector2 pos, Vector2 colliderSize, float speedFactor = 1.0f)
     : Entity(pos, colliderSize, speedFactor)
 {
     public Point GridPosition => World.WorldToGrid(Position);
+    public bool IsTorchOn = false;
 
     public override void Update(World worldRef, GameTime gameTime)
     {

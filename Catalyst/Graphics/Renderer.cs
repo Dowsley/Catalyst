@@ -99,7 +99,8 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
         Vector2 mapCameraPosition, 
         float mapCameraZoom,
         IReadOnlyList<string> placeableTypes,
-        int currentPlaceableTypeIndex
+        int currentPlaceableTypeIndex,
+        bool toggleWallMode
     )
     {
         if (isMapOpen)
@@ -110,7 +111,7 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
         {
             MainRender(camera, world, player, debug, gameTime);
             ScaleResolution();
-            DrawUI(player, world, placeableTypes, currentPlaceableTypeIndex);
+            DrawUI(player, world, placeableTypes, currentPlaceableTypeIndex, toggleWallMode);
         }
     }
     
@@ -305,7 +306,7 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
         }
     }
 
-    private void DrawUI(Player player, World world, IReadOnlyList<string> placeableTypes, int currentPlaceableTypeIndex)
+    private void DrawUI(Player player, World world, IReadOnlyList<string> placeableTypes, int currentPlaceableTypeIndex, bool toggleWallMode)
     {
         _uiSpriteBatch.Begin();
 
@@ -326,7 +327,6 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
         var playerGridY = World.WorldToGrid(player.Position.Y);
         var heightText = $"Height: {playerGridY}";
         var heightTextPosition = new Vector2(10, 10 + _mainFont.MeasureString(selectedTileText).Y * 0.5f + 5);
-
         _uiSpriteBatch.DrawString(
             _mainFont,
             heightText,
@@ -338,6 +338,23 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
             SpriteEffects.None,
             0.5f
         );
+
+        var mode = toggleWallMode ? "Wall" : "Tile";
+        var modeText = $"Mode: {mode}";
+        var modeTextPosition = new Vector2(10, 10 + _mainFont.MeasureString(modeText).Y + 5);
+        _uiSpriteBatch.DrawString(
+            _mainFont,
+            modeText,
+            modeTextPosition,
+            Color.LightCyan,
+            0f,
+            Vector2.Zero,
+            0.5f,
+            SpriteEffects.None,
+            0.5f
+        );
+        
+        
 
         _uiSpriteBatch.End();
     }

@@ -16,8 +16,13 @@ namespace Catalyst.Systems;
 /// </p>
 /// <p>
 /// 1. <c>ScanPhase</c>: This initial phase scans each column of tiles from top to bottom. 
-///    It seeds initial light values based on three main criteria:
+///    It seeds initial light values based on several criteria:
 ///    <list type="bullet">
+///        <item>
+///            <description><c>Player Torch</c>: If the player has their torch on, a temporary light source is created
+///            around the player, with intensity falling off with distance.
+///            </description>
+///        </item>
 ///        <item>
 ///            <description><c>Tile Glow</c>: Tiles can have an intrinsic <c>Glow</c> property. If a tile glows (Glow > 0),
 ///            it contributes light equal to its <c>Glow</c> value. This value can exceed 1.0f to represent
@@ -39,7 +44,7 @@ namespace Catalyst.Systems;
 ///            </description>
 ///        </item>
 ///    </list>
-///    A tile's final light value from this phase is the maximum of these three considerations if applicable, or 0.0f if none apply or occluded.
+///    A tile's final light value from this phase is the maximum of these considerations if applicable, or 0.0f if none apply or occluded.
 ///    Solid tiles encountered during the top-down scan will block the <c>inOpenSkyColumn</c> for subsequent tiles below them, regardless of their glow.
 /// </p>
 /// <p>
@@ -57,9 +62,11 @@ public class LightingSystem
     private readonly World _world;
 
     public const float SkyLightIntensity = 1.0f; // Standard intensity for sky/surface air.
-    private const float LightDecayThroughAir = 0.91f;
-    private const float LightDecayThroughSolid = 0.56f;
+    public const float LightDecayThroughAir = 0.91f;
+    public const float LightDecayThroughSolid = 0.56f;
     private const float MinLightThreshold = 0.0185f; // Light below this is considered black
+    private const int PlayerTorchRadius = 3; // Tiles away from player center
+    private static readonly float[] PlayerTorchFalloff = { 1.0f, 0.8f, 0.5f, 0.2f }; // Intensity by distance: 0, 1, 2, 3
 
     private Rectangle _lastProcessedLightingArea = Rectangle.Empty;
 
@@ -127,7 +134,7 @@ public class LightingSystem
     /// <summary>
     /// First phase of lighting: Scans columns to seed initial light values. 
     /// Light values can exceed 1.0f if tile Glow is high.
-    /// This includes intrinsic tile glow, direct sky light, and surface air brightness.
+    /// This includes player torch, intrinsic tile glow, direct sky light, and surface air brightness.
     /// </summary>
     /// <param name="areaToUpdate">The rectangular area to scan.</param>
     private void ScanPhase(Rectangle areaToUpdate)
@@ -139,6 +146,9 @@ public class LightingSystem
         float skyLightFadeStartY = surfaceLayerAbsYStart + (surfaceLayerAbsYEnd - surfaceLayerAbsYStart) * 0.75f; // will start fading by about 3/4 of the surface
         float skyLightFadeEndY = Math.Max(skyLightFadeStartY, surfaceLayerAbsYEnd); 
         skyLightFadeEndY = Math.Min(skyLightFadeEndY, _world.WorldSize.Y - 1);
+
+        Point playerGridPos = _world.PlayerRef?.GridPosition ?? new Point(-1, -1); // Default if player is null
+        bool isTorchOn = _world.PlayerRef is { IsTorchOn: true };
 
         for (int x = areaToUpdate.Left; x < areaToUpdate.Left + areaToUpdate.Width; x++)
         {
@@ -157,16 +167,32 @@ public class LightingSystem
                 
                 float lightValueToSet = 0.0f;
 
-                // 1. Apply intrinsic tile glow
-                lightValueToSet = Math.Max(lightValueToSet, currentTile.Type.Glow);
+                // 1. Check for player torch light
+                if (isTorchOn)
+                {
+                    int distSq = (x - playerGridPos.X) * (x - playerGridPos.X) + (y - playerGridPos.Y) * (y - playerGridPos.Y);
+                    // Using Chebyshev distance (max of abs diff in coords) for square/diamond shape, or Euclidean for circle
+                    int distChebyshev = Math.Max(Math.Abs(x - playerGridPos.X), Math.Abs(y - playerGridPos.Y));
 
-                // 2. Check for surface air brightness (typically 1.0f)
+                    if (distChebyshev < PlayerTorchFalloff.Length)
+                    {
+                        lightValueToSet = Math.Max(lightValueToSet, PlayerTorchFalloff[distChebyshev]);
+                    }
+                }
+
+                // 2. Check for intrinsic tile glow. This can be > 1.0f.
+                if (currentTile.Type.Glow > 0)
+                {
+                    lightValueToSet = Math.Max(lightValueToSet, currentTile.Type.Glow);
+                }
+
+                // 3. Check for surface air brightness (typically 1.0f)
                 if (isCurrentTileSurfaceAir)
                 {
                     lightValueToSet = Math.Max(lightValueToSet, SkyLightIntensity);
                 }
 
-                // 3. Check for direct skylight (typically 1.0f, fading with depth)
+                // 4. Check for direct sky light (typically 1.0f, fading with depth)
                 if (inOpenSkyColumn)
                 {
                     float directFadedSkyLight = 0f;
