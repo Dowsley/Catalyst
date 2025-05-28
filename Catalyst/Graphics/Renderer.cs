@@ -113,9 +113,24 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
         }
     }
     
-    private void DrawTile(int x, int y, Sprite sprite)
+    private void DrawTile(World world, int x, int y)
     {
-        DrawSprite(sprite, new Vector2(x, y) * Settings.TileSize);
+        var tile = world.GetTileAt(x, y);
+        if (tile.Type.Id == "EMPTY")
+        {
+            return;
+        }
+
+        var sprite = tile.Sprite;
+        float lightValue = world.GetLightValueAt(x, y);
+        var modulate = sprite.Modulate;
+        Color tileColor = new Color(
+            modulate.R / 255f * lightValue,
+            modulate.G / 255f * lightValue,
+            modulate.B / 255f * lightValue
+        );
+
+        DrawSprite(sprite, new Vector2(x, y) * Settings.TileSize, tileColor);
     }
 
     private void DrawSprite(Sprite sprite, Vector2 pos, Color? color = null)
@@ -235,8 +250,7 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
         {
             for (int j = startTileY; j <= endTileY; j++)
             {
-                Sprite sprite = world.GetTileSpriteAt(i, j);
-                DrawTile(i, j, sprite);
+                DrawTile(world, i, j);
             }
         }
     }

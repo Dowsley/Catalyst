@@ -24,6 +24,9 @@ public class TileTypeDTO
 
     [XmlElement("MapColor")]
     public Color MapColor { get; set; } = Color.Magenta;
+    
+    [XmlElement("Glow")]
+    public float Glow { get; set; } = 0f;
 
     [XmlArray("SpriteVariants")]
     [XmlArrayItem("Sprite2D")]

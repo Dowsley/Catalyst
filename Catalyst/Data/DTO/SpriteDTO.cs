@@ -1,4 +1,5 @@
 using System.Xml.Serialization;
+using Microsoft.Xna.Framework;
 
 namespace Catalyst.Data.DTO;
 
@@ -20,6 +21,9 @@ public class SpriteDTO
 
     [XmlElement("SourceRect")]
     public SourceCoordsDTO SourceRectCoords { get; set; } = new();
+    
+    [XmlElement("Modulate")]
+    public Color? Modulate { get; set; } = null;
 
     // Parameterless constructor for XML serialization
     public SpriteDTO() {}

@@ -9,7 +9,7 @@ public class TileTypeLoader : BaseLoader<TileTypeDTO, TileType>
 {
     protected override TileType MapDtoToDomain(TileTypeDTO dto)
     {
-        var tileType = new TileType(dto.Id, dto.Name, dto.Description, dto.Durability, dto.IsSolid)
+        var tileType = new TileType(dto.Id, dto.Name, dto.Description, dto.Durability, dto.IsSolid, dto.Glow)
         {
             MapColor = dto.MapColor
         };
@@ -22,7 +22,7 @@ public class TileTypeLoader : BaseLoader<TileTypeDTO, TileType>
                 Globals.Settings.TileSize,
                 Globals.Settings.TileSize
             );
-            var sprite = new Sprite(spriteDto.TextureId, sourceRectangle);
+            var sprite = new Sprite(spriteDto.TextureId, sourceRectangle, spriteDto.Modulate);
             tileType.AddSpriteVariant(sprite);
         }
         return tileType;

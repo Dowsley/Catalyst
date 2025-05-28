@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 
 namespace Catalyst.Tiles;
 
-public class TileType(string id, string name, string description, int maxHealth, bool isSolid)
+public class TileType(string id, string name, string description, int maxHealth, bool isSolid, float glow = 0f)
 {
     // public static TileType Uninitialized;
 
@@ -15,7 +15,8 @@ public class TileType(string id, string name, string description, int maxHealth,
     public int MaxHealth { get; set; } = maxHealth;
     public bool IsSolid { get; set; } = isSolid;
     public Color MapColor { get; set; } = Color.Magenta;
-    public List<Sprite> SpriteVariants = [];
+    public readonly List<Sprite> SpriteVariants = [];
+    public float Glow = glow; // light source
 
     public Sprite GetSprite(int index)
     {

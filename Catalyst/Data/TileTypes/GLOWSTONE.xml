@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TileType xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Id>GLOWSTONE</Id>
+  <Name>Glowstone</Name>
+  <Description>Just some stone that glows</Description>
+  <Durability>50</Durability>
+  <IsSolid>true</IsSolid>
+  <MapColor>
+    <R>232</R>
+    <G>214</G>
+    <B>79</B>
+    <A>255</A>
+  </MapColor>
+  <Glow>
+    1.5
+  </Glow>
+  <SpriteVariants>
+    <Sprite2D>
+      <TextureId>Cloud</TextureId>
+      <SourceRect>
+        <X>0</X>
+        <Y>1</Y>
+      </SourceRect>
+      <Modulate>
+        <R>232</R>
+        <G>214</G>
+        <B>79</B>
+        <A>255</A>
+      </Modulate>
+    </Sprite2D>
+  </SpriteVariants>
+</TileType> 

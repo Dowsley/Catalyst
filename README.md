@@ -35,12 +35,18 @@ This project uses [FastNoiseLite](https://auburn.github.io/FastNoiseLite/).
 - [X] Skybox
 - [X] Tile Types from XML (data-driven approach)
 - [ ] Lighting
-- [ ] Background Walls
-  - Affects lighting
+  - [X] Ambient
+  - [X] Light source tiles
+  - [ ] Light
+- [ ] Walls
+  - [ ] Default walls 
+  - [ ] Placeable walls
+  - [ ] Affects lighting
 - [ ] Placeable Walls
 - [ ] Trees
 - [ ] Autotiling/Atlas
 - [ ] Tile State (Manager)
+- [ ] Objects
 - [ ] Entity System
 - [ ] Player Interaction with the world
   - [ ] Actions (no need to generalize for Entity right now)
@@ -50,3 +56,4 @@ This project uses [FastNoiseLite](https://auburn.github.io/FastNoiseLite/).
 - [ ] Chunking
 - [ ] Generation Improvements
   - [ ] Need an algorithm for longer, winding caves
+    - Maybe perlin worms?

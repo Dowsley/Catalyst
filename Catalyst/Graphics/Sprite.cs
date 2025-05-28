@@ -1,11 +1,13 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Catalyst.Graphics;
 
-public class Sprite(string textureId, Rectangle sourceRect)
+public class Sprite(string textureId, Rectangle sourceRect, Color? modulate = null)
 {
     public readonly string TextureId = textureId;
     public Rectangle SourceRect { get; private set; } = sourceRect;
+    public Color Modulate = modulate ?? Color.White;
     
     /// <summary>
     /// Gets the size of the source rectangle
@@ -32,6 +34,4 @@ public class Sprite(string textureId, Rectangle sourceRect)
             gridHeight * tileSize
         );
     }
-    
-    // TODO: add modulate
 }

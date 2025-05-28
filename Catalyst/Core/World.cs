@@ -17,6 +17,7 @@ public class World
     public readonly CollisionSystem CollisionSystem;
     public readonly TileRegistry TileRegistry;
     public readonly WorldGenerator Generator;
+    public bool WorldGenerating = true;
     
     public readonly Queue<Point> DebugCollidedTiles = [];
     public readonly Queue<Point> DebugCheckedTiles = [];
@@ -27,6 +28,9 @@ public class World
 
     public readonly Point WorldSize;
     private readonly Tile[,] _tiles;
+    private readonly LightingSystem _lightingSystem;
+    private readonly float[,] _lightValues;
+    private const int UpdateRadius = 20;
     
     private Player _playerRef = null!;
     private readonly List<Entity> _npcs = [];
@@ -35,17 +39,61 @@ public class World
     private const int Seed = 0;
     private readonly Random _random = new(Seed);
 
+    private const float ViewHalfWidthWorld = Settings.NativeWidth / (2f * Settings.ResScale);
+    private const float ViewHalfHeightWorld = Settings.NativeHeight / (2f * Settings.ResScale);
+
     public World(int sizeX, int sizeY, TileRegistry tileRegistry, bool debug=false)
     {
         _debug = debug;
         _tiles = new Tile[sizeX, sizeY];
+        _lightValues = new float[sizeX, sizeY]; 
         WorldSize = new Point(sizeX, sizeY);
         CollisionSystem = new CollisionSystem(this, _debug);
         TileRegistry = tileRegistry;
         Generator = new WorldGenerator(this, Seed);
+        _lightingSystem = new LightingSystem(this);
     }
     
-    public void Update(GameTime gameTime)
+    public void InitializeLighting()
+    {
+        _lightingSystem.InitializeEntireWorldLighting();
+    }
+    
+    public float GetLightValueAt(int x, int y)
+    {
+        return !IsWithinBounds(x, y) ? 0.0f : _lightValues[x, y];
+    }
+
+    public void SetLightValue(int x, int y, float value)
+    {
+        if (IsWithinBounds(x,y))
+        {
+            _lightValues[x, y] = value;
+        }
+    }
+
+    private Rectangle CalculateViewRectInTiles(Camera camera)
+    {
+        float viewLeftWorld = camera.Position.X - ViewHalfWidthWorld;
+        float viewRightWorld = camera.Position.X + ViewHalfWidthWorld;
+        float viewTopWorld = camera.Position.Y - ViewHalfHeightWorld;
+        float viewBottomWorld = camera.Position.Y + ViewHalfHeightWorld;
+
+        const int padding = 20; 
+        int startTileX = WorldToGrid(viewLeftWorld) - padding;
+        int endTileX = WorldToGrid(viewRightWorld) + padding;
+        int startTileY = WorldToGrid(viewTopWorld) - padding;
+        int endTileY = WorldToGrid(viewBottomWorld) + padding;
+
+        startTileX = Math.Max(0, startTileX);
+        startTileY = Math.Max(0, startTileY);
+        endTileX = Math.Min(WorldSize.X, endTileX); 
+        endTileY = Math.Min(WorldSize.Y, endTileY);
+
+        return new Rectangle(startTileX, startTileY, Math.Max(0, endTileX - startTileX), Math.Max(0, endTileY - startTileY));
+    }
+
+    public void Update(GameTime gameTime, Camera camera) 
     {
         DebugTimer += TimeUtils.GetDelta(gameTime);
         if (DebugTimer >= DebugVanishTimeSecs)
@@ -55,25 +103,64 @@ public class World
             DebugTimer = 0f;
         }
         UpdateAllEntities(gameTime);
+
+        if (WorldGenerating)
+            return;
+        Rectangle viewRect = CalculateViewRectInTiles(camera);
+        if (viewRect is { Width: > 0, Height: > 0 })
+        {
+            _lightingSystem.RequestLightingUpdate(viewRect);
+        }
+    }
+ 
+    private bool ForceLightUpdate() // This might move to LightingSystem or be used by it
+    {
+        return false; 
     }
 
-    public void UpdateAllEntities(GameTime gameTime)
+    public Tile GetTileAt(int x, int y)
+    {
+        return !IsWithinBounds(x,y) ? new Tile(TileRegistry.Get("EMPTY"), 0) : _tiles[x,y];
+    }
+
+    public void GenerateTerrain()
+    {
+        WorldGenerating = true;
+        Generator.Generate();
+        WorldGenerating = false;
+    }
+
+    public void SetTileAt(int x, int y, TileType tileType)
+    {
+        SetTileAt(x, y, new Tile(tileType, tileType.GetRandomSpriteIndex(_random)));
+    }
+
+    public void SetTileAt(int x, int y, Tile tile)
+    {
+        if (!IsWithinBounds(x, y))
+             return;
+         
+        _tiles[x, y] = tile;
+         
+        if (WorldGenerating)
+             return;
+         
+        Rectangle changedArea = new Rectangle(
+             x - UpdateRadius,
+             y - UpdateRadius,
+             UpdateRadius * 2,
+             UpdateRadius * 2
+        );
+        _lightingSystem.RequestLightingUpdate(changedArea);
+    }
+
+    private void UpdateAllEntities(GameTime gameTime)
     {
         _playerRef.Update(this, gameTime);
         foreach (var npc in _npcs)
             npc.Update(this, gameTime);
     }
     
-    public void GenerateTerrain()
-    {
-        Generator.Generate();
-    }
-
-    public void SetPlayer(Player playerRef)
-    {
-        _playerRef = playerRef;
-    }
-
     public TileType GetTileTypeAt(int x, int y)
     {
         return _tiles[x, y].Type;
@@ -170,19 +257,8 @@ public class World
         return val * Settings.TileSize;
     }
 
-    public void SetTileAt(int x, int y, TileType type)
+    public void SetPlayer(Player playerRef)
     {
-        if (IsWithinBounds(x, y))
-        {
-            _tiles[x, y] = new Tile(type, type.GetRandomSpriteIndex(_random));
-        }
-    }
-    
-    public void SetTileAt(int x, int y, Tile tile)
-    {
-        if (IsWithinBounds(x, y))
-        {
-            _tiles[x, y] = tile;
-        }
+        _playerRef = playerRef;
     }
 }

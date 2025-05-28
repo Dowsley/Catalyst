@@ -28,7 +28,7 @@ public class Game1 : Game
     private bool _debug = false;
     
     /* Gameplay */
-    private readonly List<string> _placeableTypes = ["DIRT", "STONE", "OAK_LOG"];
+    private readonly List<string> _placeableTypes = ["DIRT", "STONE", "OAK_LOG", "GLOWSTONE"];
     private int _currType = 0;
 
     /* Map */
@@ -61,6 +61,7 @@ public class Game1 : Game
             _debug
         );
         _world.GenerateTerrain();
+        _world.InitializeLighting();
         
         base.Initialize();
         InitializePlayer();
@@ -92,7 +93,7 @@ public class Game1 : Game
         else
         {
             UpdateGameControls(gameTime);
-            _world.Update(gameTime);
+            _world.Update(gameTime, _camera);
             _camera.Position = _player.Position + new Vector2(_renderer.CharacterTexture.Width / 2f, _renderer.CharacterTexture.Height / 2f);
         }
         
