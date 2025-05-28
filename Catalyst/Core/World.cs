@@ -63,6 +63,11 @@ public class World
     {
         return !IsWithinBounds(x, y) ? 0.0f : _lightValues[x, y];
     }
+    
+    public float GetLightValueForRenderingAt(int x, int y)
+    {
+        return Math.Clamp(GetLightValueAt(x, y), 0f, 1f);
+    }
 
     public void SetLightValue(int x, int y, float value)
     {

@@ -123,7 +123,7 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
             attemptDrawingWall = true;
         }
         var sprite = attemptDrawingWall ? tile.WallSprite : tile.Sprite;
-        float lightValue = world.GetLightValueAt(x, y);
+        float lightValue = world.GetLightValueForRenderingAt(x, y);
         var modulate = sprite.Modulate;
         var factor = lightValue * (attemptDrawingWall ? WallDarkeningFactor : 1f);
         Color tileColor = new Color(
@@ -175,7 +175,7 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
         }
 
         var playerPosTile = World.WorldToGrid(player.Position);
-        float lightValue = world.GetLightValueAt(playerPosTile.X, playerPosTile.Y); // TODO: Average out the light value from the blocks the player occupies instead
+        float lightValue = world.GetLightValueForRenderingAt(playerPosTile.X, playerPosTile.Y); // TODO: Average out the light value from the blocks the player occupies instead
         Color playerColor = new Color(
             Color.White.R / 255f * lightValue,
             Color.White.G / 255f * lightValue,
