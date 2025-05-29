@@ -12,8 +12,6 @@ public class SpriteDTO
 
         [XmlElement("Y")]
         public int Y { get; set; }
-
-        public SourceCoordsDTO() {}
     }
     
     [XmlElement("TextureId")]
@@ -23,8 +21,5 @@ public class SpriteDTO
     public SourceCoordsDTO SourceRectCoords { get; set; } = new();
     
     [XmlElement("Modulate")]
-    public Color? Modulate { get; set; } = null;
-
-    // Parameterless constructor for XML serialization
-    public SpriteDTO() {}
+    public Color? Modulate { get; set; }
 }

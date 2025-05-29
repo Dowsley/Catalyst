@@ -1,7 +1,5 @@
 using Catalyst.Core.WorldGeneration.Masks;
 using Catalyst.Tiles;
-using Microsoft.Xna.Framework;
-using System.Collections.Generic;
 
 namespace Catalyst.Core.WorldGeneration.Passes;
 

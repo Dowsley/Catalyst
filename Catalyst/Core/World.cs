@@ -188,7 +188,7 @@ public class World
 
     private void UpdateAllEntities(GameTime gameTime)
     {
-        PlayerRef.Update(this, gameTime);
+        PlayerRef?.Update(this, gameTime);
         foreach (var npc in _npcs)
             npc.Update(this, gameTime);
     }

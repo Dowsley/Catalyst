@@ -1,4 +1,3 @@
-using System.Linq;
 using Catalyst.Globals;
 using Catalyst.Tiles;
 

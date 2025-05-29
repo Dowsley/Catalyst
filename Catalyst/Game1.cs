@@ -7,7 +7,6 @@ using Catalyst.Graphics;
 using Catalyst.Systems;
 using Catalyst.Tiles;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace Catalyst;

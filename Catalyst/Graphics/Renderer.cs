@@ -326,7 +326,8 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
 
         var playerGridY = World.WorldToGrid(player.Position.Y);
         var heightText = $"Height: {playerGridY}";
-        var heightTextPosition = new Vector2(10, 10 + _mainFont.MeasureString(selectedTileText).Y * 0.5f + 5);
+        var heightTextSize = _mainFont.MeasureString(heightText) * 0.5f;
+        var heightTextPosition = new Vector2(10, topLeftMargin.Y + (_mainFont.MeasureString(selectedTileText).Y * 0.5f) + 5);
         _uiSpriteBatch.DrawString(
             _mainFont,
             heightText,
@@ -341,7 +342,9 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
 
         var mode = toggleWallMode ? "Wall" : "Tile";
         var modeText = $"Mode: {mode}";
-        var modeTextPosition = new Vector2(10, 10 + _mainFont.MeasureString(modeText).Y + 5);
+        var modeTextSize = _mainFont.MeasureString(modeText) * 0.5f;
+        // Position below heightText
+        var modeTextPosition = new Vector2(10, heightTextPosition.Y + heightTextSize.Y + 5);
         _uiSpriteBatch.DrawString(
             _mainFont,
             modeText,
@@ -354,7 +357,33 @@ public class Renderer(GraphicsDevice graphicsDevice, ContentManager content)
             0.5f
         );
         
-        
+        // Determine player's current layer
+        float playerTileY = player.GridPosition.Y;
+        float worldHeightTiles = world.GetHeight();
+        string currentPlayerLayerName = "Unknown"; // Default if not found
+
+        foreach (var layerInfo in WorldGenSettings.Layers)
+        {
+            float layerEndYAbsolute = layerInfo.EndYRatio * worldHeightTiles;
+            if (!(playerTileY < layerEndYAbsolute))
+                continue;
+            currentPlayerLayerName = layerInfo.Id;
+            break;
+        }
+
+        var layerText = $"Layer: {currentPlayerLayerName}";
+        var layerTextPosition = new Vector2(10, modeTextPosition.Y + modeTextSize.Y + 5);
+         _uiSpriteBatch.DrawString(
+            _mainFont,
+            layerText,
+            layerTextPosition,
+            Color.LightYellow, // Different color for distinction
+            0f,
+            Vector2.Zero,
+            0.5f,
+            SpriteEffects.None,
+            0.5f
+        );
 
         _uiSpriteBatch.End();
     }

@@ -31,7 +31,4 @@ public class TileTypeDTO
     [XmlArray("SpriteVariants")]
     [XmlArrayItem("Sprite2D")]
     public List<SpriteDTO> SpriteVariants { get; set; } = [];
-
-    // Parameterless constructor for XML serialization
-    public TileTypeDTO() {}
 }

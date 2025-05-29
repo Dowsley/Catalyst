@@ -38,14 +38,15 @@ This project uses [FastNoiseLite](https://auburn.github.io/FastNoiseLite/).
   - [X] Ambient
   - [X] Light source tiles
   - [X] Player must be illuminated as well
-- [ ] Walls (starbound-style)
+- [X] Walls (starbound-style)
   - [X] Destructible/Placeable walls
   - [X] Affects lighting
   - [X] Add torch to player for easier debugging
   - [X] Allow player to place them
-  - [ ] Layer specific parallax walls
-    - [ ] Affects lighting as well
-- [ ] Trees
+- [ ] Vegetation 
+  - [ ] Grass
+  - [ ] Trees
+  - [ ] Plants in general
 - [ ] Autotiling/Atlas
 - [ ] Tile State (Manager)
 - [ ] Objects
@@ -59,3 +60,6 @@ This project uses [FastNoiseLite](https://auburn.github.io/FastNoiseLite/).
 - [ ] Generation Improvements
   - [ ] Need an algorithm for longer, winding caves
     - Maybe perlin worms?
+- [ ] Layer specific parallax walls
+  - [ ] Affects lighting as well
+- [ ] Improve lighting (I can see a cross)

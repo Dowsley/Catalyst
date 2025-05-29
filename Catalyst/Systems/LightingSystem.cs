@@ -65,8 +65,7 @@ public class LightingSystem
     public const float LightDecayThroughAir = 0.91f;
     public const float LightDecayThroughSolid = 0.56f;
     private const float MinLightThreshold = 0.0185f; // Light below this is considered black
-    private const int PlayerTorchRadius = 3; // Tiles away from player center
-    private static readonly float[] PlayerTorchFalloff = { 1.0f, 0.8f, 0.5f, 0.2f }; // Intensity by distance: 0, 1, 2, 3
+    private static readonly float[] PlayerTorchFalloff = [1.0f, 0.8f, 0.5f, 0.2f]; // Intensity by distance: 0, 1, 2, 3
 
     private Rectangle _lastProcessedLightingArea = Rectangle.Empty;
 
@@ -170,7 +169,6 @@ public class LightingSystem
                 // 1. Check for player torch light
                 if (isTorchOn)
                 {
-                    int distSq = (x - playerGridPos.X) * (x - playerGridPos.X) + (y - playerGridPos.Y) * (y - playerGridPos.Y);
                     // Using Chebyshev distance (max of abs diff in coords) for square/diamond shape, or Euclidean for circle
                     int distChebyshev = Math.Max(Math.Abs(x - playerGridPos.X), Math.Abs(y - playerGridPos.Y));
 

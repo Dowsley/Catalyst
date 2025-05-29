@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Catalyst.Core.WorldGeneration.Masks;
@@ -52,6 +51,7 @@ public abstract class Pass
         }
     }
 
+    // TODO: Make one of these for walls
     protected abstract Tile? GetTileTransformation(int x, int y, float maskValue);
 
     protected Tile CreateEmptyTile(TileType? wallType = null)

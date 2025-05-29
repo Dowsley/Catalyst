@@ -5,10 +5,6 @@ namespace Catalyst.Core.WorldGeneration.Passes;
 
 public class BedrockLayerPass : Pass
 {
-    private const float BaseThreshold = -0.7f;
-    private const float MaskInfluenceOnThreshold = 0.2f;
-    private const int BoundaryNoiseSeedOffset = 123;
-
     public BedrockLayerPass(World world) : base(world)
     {
         Noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);

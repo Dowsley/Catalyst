@@ -1,11 +1,12 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Xna.Framework;
 
 namespace Catalyst.Globals;
 
 public static class WorldGenSettings
 {
+    // TODO: Switch this for an enum and complex object
+    
     // Layers: Works in ranges [[ ranges. From 0, to LAYER_NUM1-1. Then from LAYER_NUM1 to to LAYER_NUM2-1 etc.  
     public static readonly List<(string Id, float EndYRatio)> Layers =
     [
@@ -35,4 +36,27 @@ public static class WorldGenSettings
         float surfaceMidPointYPercent = (surfaceStartPercent + surfaceEndPercent) / 2f;
         return worldSize.Y * surfaceMidPointYPercent;
     }
-} 
+    
+    public static bool IsInLayer(int y, string layerId, int worldHeightInTiles)
+    {
+        float startYRatio = 0f;
+
+        int layerIndex = Layers.FindIndex(l => l.Id == layerId);
+        if (layerIndex == -1) 
+        {
+            return false; 
+        }
+
+        var endYRatio = Layers[layerIndex].EndYRatio;
+        if (layerIndex > 0)
+        {
+            startYRatio = Layers[layerIndex - 1].EndYRatio;
+        }
+
+        float startYAbsolute = startYRatio * worldHeightInTiles;
+        float endYAbsolute = endYRatio * worldHeightInTiles;
+
+        // A tile at y is in the layer if its y-coordinate is >= the layer's start and < the layer's end.
+        return y >= startYAbsolute && y < endYAbsolute;
+    }
+}
